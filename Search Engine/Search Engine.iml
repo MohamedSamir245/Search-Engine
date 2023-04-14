@@ -7,5 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="mongo-java-driver-3.12.13" level="project" />
+    <orderEntry type="library" name="jsoup-1.15.4" level="project" />
+    <orderEntry type="library" name="ai.tock.nlp.model.opennlp" level="project" />
+    <orderEntry type="library" name="google.code.gson" level="project" />
   </component>
 </module>
