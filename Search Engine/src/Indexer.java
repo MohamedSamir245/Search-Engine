@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.google.gson.*;
@@ -32,6 +33,7 @@ import org.jsoup.select.Elements;
 import javax.print.Doc;
 
 import static java.util.Arrays.asList;
+//import static sun.nio.ch.DatagramChannelImpl.AbstractSelectableChannels.forEach;
 
 
 public class Indexer {
@@ -88,7 +90,8 @@ public class Indexer {
         String bodyText= doc2.body().text();
 
         bodyText = bodyText.replaceAll(",|\\.|!|\\?|:|;|\\)|\\(|\\[|]|\\*&\\^%\\$|\"|\'", "");
-        bodyText = bodyText.replaceAll("/|\\\\|-", "");
+        bodyText = bodyText.replaceAll("/|\\\\|", "");
+        bodyText = bodyText.replaceAll("©|»|-", "");
 
         String Words[];
         Words=bodyText.split(" ");
@@ -100,6 +103,15 @@ public class Indexer {
         //finding freq of all word in a doc
         var freq = Arrays.stream(Words)
                 .collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+
+        var uniqeWords=Arrays.stream(Words).distinct().toArray();
+
+//        for(int i=0;i<uniqeWords.length;i++)
+//        {
+//            System.out.println(uniqeWords[i]);
+//        }
+
+//        System.out.println(uniqeWords);
 
         ArrayList<String> stopwordsList=new ArrayList<>();
 
@@ -116,23 +128,44 @@ public class Indexer {
         System.out.println("An error occurred.");
         e.printStackTrace();
     }
+        ArrayList<String> modifiedWords = new ArrayList<>();
 
-    System.out.println(freq);
+        for(int i=0;i<uniqeWords.length;i++)
+        {
+            if(!stopwordsList.contains(uniqeWords[i]))
+            {
+                modifiedWords.add(uniqeWords[i].toString());
+            }
+        }
+//        modifiedWords.forEach(System.out::println);
+
+
+
+        System.out.println(modifiedWords.size());
+        System.out.println(uniqeWords.length);
+
+
+
+
+
+//    System.out.println(freq);
 
     Document freqDocument=new Document();
 
-
-for(int i=0;i<freq.size();i++)
-{
-    freq.forEach(freqDocument::append);
-}
+        for(int i=0;i<modifiedWords.size();i++)
+        {
+            freqDocument.append(modifiedWords.get(i),SamirURL.toString());
+        }
+//for(int i=0;i<freq.size();i++)
+//{
+//    freq.forEach(freqDocument::append);
+//}
 
 //System.out.println(freqDocument);
 
         IndexerCollection.insertOne(freqDocument);
 
 
-    String[] modifiedWords = new String[freq.size()];
 
     int size = 0;
 
