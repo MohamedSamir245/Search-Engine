@@ -2,6 +2,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -129,12 +130,14 @@ public class Indexer {
         e.printStackTrace();
     }
         ArrayList<String> modifiedWords = new ArrayList<>();
+//        ArrayList<Integer>Freq=new ArrayList<>();
 
         for(int i=0;i<uniqeWords.length;i++)
         {
             if(!stopwordsList.contains(uniqeWords[i]))
             {
                 modifiedWords.add(uniqeWords[i].toString());
+//                Freq.add()
             }
         }
 //        modifiedWords.forEach(System.out::println);
@@ -154,7 +157,9 @@ public class Indexer {
 
         for(int i=0;i<modifiedWords.size();i++)
         {
-            freqDocument.append(modifiedWords.get(i),SamirURL.toString());
+            ArrayList<String>websites=new ArrayList<>();
+            websites.add(SamirURL.toString());
+            freqDocument.append(modifiedWords.get(i),websites);
         }
 //for(int i=0;i<freq.size();i++)
 //{
@@ -163,7 +168,15 @@ public class Indexer {
 
 //System.out.println(freqDocument);
 
-        IndexerCollection.insertOne(freqDocument);
+//        IndexerCollection.insertOne(freqDocument);
+
+//        FindIterable<Document>getdoctest=IndexerCollection.find();
+//        for (Document document:
+//                getdoctest
+//             ) {
+//            System.out.println(document.toJson());
+//        }
+
 
 
 
