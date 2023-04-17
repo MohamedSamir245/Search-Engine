@@ -1,3 +1,5 @@
+//TODO: Make separate collection each for a major HTML tag
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
@@ -96,6 +98,7 @@ public class Indexer {
 
 
             String bodyText = doc.body().text();
+
 
             bodyText = bodyText.replaceAll(",|\\.|!|\\?|:|;|\\)|\\(|\\[|]|\\*&\\^%\\$|\"|\'", "");
             bodyText = bodyText.replaceAll("/|\\\\|", "");
