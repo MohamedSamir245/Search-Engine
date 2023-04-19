@@ -1,13 +1,11 @@
-package Crawler;
-
-// TODO: robot.txt
-// TODO: save state
+// TODO: Robot.txt
+// TODO: save State
 
 // ----------------- Libraries -----------------------
 
 // *** Reading data from file ***
-import java.io.File; // Import the File class
-import java.io.FileNotFoundException; // Import this class to handle errors
+import java.io.File;  // Import the File class
+import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner; // Import the Scanner class to read text files
 
@@ -31,17 +29,22 @@ import java.util.ArrayList;
 import java.net.URL;
 import java.net.URLEncoder;
 
+
 //  ---------------------   Code    ----------------------------
 public class Main {
 
-    public static void main(String[] args) {
+
+
+    public static void main(String[] args)
+    {
         int ThreadsNo = ReadThreadNumber();
 
-        // Threads Crawler
-        ThreadsCrawler myThreadsCrawler = new ThreadsCrawler(ThreadsNo);
+//        Threads Crawler
+        ThreadsCrawler myThreadsCrawler =new ThreadsCrawler(ThreadsNo);
     }
 
-    private static int ReadThreadNumber() {
+    private static int ReadThreadNumber()
+    {
         int ThreadsNo = 0;
 
         System.out.println("Admin: Reading threads number");
@@ -51,14 +54,12 @@ public class Main {
         // Reading data using readLine
         try {
             ThreadsNo = Integer.parseInt(reader.readLine());
-            while (ThreadsNo <= 0) {
+            while(ThreadsNo <= 0) {
                 System.out.print("Enter valid value.. ");
                 ThreadsNo = Integer.parseInt(reader.readLine());
             }
 
-        } catch (IOException e) {
-            e.getStackTrace();
-        }
+        } catch (IOException e) {e.getStackTrace();}
         // Printing the read line
         System.out.println(ThreadsNo);
 
@@ -74,60 +75,58 @@ class ThreadsCrawler {
 
     }
 
-    private void run(int ThreadsNum) {
-        ArrayList<Thread> threads = new ArrayList<>();
-        main c = new main();
+    private void run(int ThreadsNum){
+        ArrayList<Thread> threads=new ArrayList<>();
+        Crawler c = new Crawler();
 
-        CreateThreads(threads, ThreadsNum, c);
-        StartThreads(threads, ThreadsNum);
-        JoinThreads(threads, ThreadsNum);
+        CreateThreads(threads,ThreadsNum,c);
+        StartThreads(threads,ThreadsNum);
+        JoinThreads(threads,ThreadsNum);
 
         System.out.println("Crawler: Print Out");
 
         System.out.println("Crawler: Finish.");
     }
 
-    private void CreateThreads(ArrayList<Thread> threads, int ThreadsNum, main c) {
-        for (int i = 0; i < ThreadsNum; i++) {
+    private void CreateThreads(ArrayList<Thread> threads,int ThreadsNum, Crawler c){
+        for (int i=0;i<ThreadsNum;i++) {
             threads.add(new Thread(c));
         }
     }
 
-    private void StartThreads(ArrayList<Thread> threads, int ThreadsNum) {
-        for (int i = 0; i < ThreadsNum; i++) {
+    private void StartThreads(ArrayList<Thread> threads,int ThreadsNum)
+    {
+        for (int i=0;i<ThreadsNum;i++) {
             threads.get(i).start();
         }
     }
 
-    private void JoinThreads(ArrayList<Thread> threads, int ThreadsNum) {
-        for (int i = 0; i < ThreadsNum; i++) {
-            try {
+    private void JoinThreads(ArrayList<Thread> threads,int ThreadsNum){
+        for (int i=0;i<ThreadsNum;i++) {
+            try{
                 threads.get(i).join();
-            } catch (Exception e) {
-                e.getStackTrace();
-            }
+            }catch (Exception e){e.getStackTrace();}
         }
     }
 }
 
-class main implements Runnable {
+class Crawler implements Runnable {
 
-    private final Queue<String> links = new LinkedList<>();
-    private final ArrayList<String> visited = new ArrayList<>();
+    private final Queue<String> links= new LinkedList<>();
+    private final ArrayList<String> visited= new ArrayList<>();
     private final ArrayList<Document> docs = new ArrayList<>();
     private static final Object myLock = new Object();
 
-    public main() {
+    public Crawler() {
         System.out.println("Crawler: Start...");
 
         System.out.println("Crawler: Read seedLinks");
         ReadSeedLinks();
 
     }
-
-    private void ReadSeedLinks() {
+    private void ReadSeedLinks(){
         try {
-            File myObj = new File("src/Crawler/seedLinks.txt");
+            File myObj = new File("src/seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
@@ -141,43 +140,43 @@ class main implements Runnable {
     }
 
     public void run() {
-        System.out.println("Thread " + Thread.currentThread().getId() + " Entered run");
+        System.out.println("Thread "+Thread.currentThread().getId()+" Entered run");
         doWork();
-        System.out.println("Thread " + Thread.currentThread().getId() + " Left run");
+        System.out.println("Thread "+Thread.currentThread().getId()+" Left run");
     }
-
-    private void doWork() {
+    private void doWork(){
         try {
-            crawler();
-        } catch (Exception e) {
-            e.getStackTrace();
-        }
+        crawler();
+    }catch (Exception e){e.getStackTrace();}
     }
 
     private void crawler() throws Exception {
         int MAX_CRAWLED = 60; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
         String link;
-        while (links.isEmpty()) {
+        while (links.isEmpty())
+        {
             synchronized (myLock) {
                 myLock.wait();
             }
         }
-        while (!links.isEmpty() && docs.size() < MAX_CRAWLED) {
+        while( !links.isEmpty() && docs.size() < MAX_CRAWLED)
+        {
             synchronized (myLock) {
                 while (links.isEmpty())
-                    myLock.wait();
-                link = links.poll();
+                         myLock.wait();
+                link=links.poll();
             }
 
-            if (link != null && !visited.contains(toCompactString(link)))
+            if( link != null && !visited.contains(toCompactString(link)) )
                 crawl(link);
         }
     }
 
-    private void crawl(String link) throws Exception {
-        Document doc = request(link);
+    private void crawl (String link) throws Exception
+    {
+        Document doc= request(link);
 
-        if (doc != null) {
+        if(doc != null) {
             System.out.println("*** " + docs.size() + " ***");
             visited.add(toCompactString(link));
             docs.add(doc);
@@ -188,23 +187,24 @@ class main implements Runnable {
                     myLock.notify();
                 }
             }
-        } else
-            System.out.println("Not Connected");
+        } else System.out.println("Not Connected");
     }
 
-    private Document request(String link) {
-        try {
+    private Document request (String link) {
+        try{
             Connection con = Jsoup.connect(link);
             Document doc = con.get();
 
-            if (con.response().statusCode() == 200) {
-                System.out.println("Thread " + Thread.currentThread().getId() + " | seedLink: " + link); // Delete
-                System.out.println("Title : " + doc.title()); // Delete
+            if(con.response().statusCode() == 200)
+            {
+                System.out.println("Thread "+Thread.currentThread().getId()+" | seedLink: " + link); // Delete
+                System.out.println("Title : "+doc.title());    // Delete
 
-                return doc;
+                return  doc;
             }
             return null;
-        } catch (IOException e) {
+        }
+        catch (IOException e){
             return null;
         }
     }
