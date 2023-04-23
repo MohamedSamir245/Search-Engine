@@ -126,7 +126,7 @@ class Crawler implements Runnable {
     }
     private void ReadSeedLinks(){
         try {
-            File myObj = new File("src/seedLinks.txt");
+            File myObj = new File("src/Crawler/seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
