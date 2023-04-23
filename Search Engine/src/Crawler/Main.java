@@ -1,13 +1,12 @@
-// TODO: Robot.txt
 // TODO: save State
 
 // ----------------- Libraries -----------------------
 
 // *** Reading data from file ***
-import java.io.File;  // Import the File class
-import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.io.File; // Import the File class
+import java.io.FileNotFoundException; // Import this class to handle errors
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner; // Import the Scanner class to read text files
+import java.util.*;
 
 // *** Reading data from console ***
 import java.io.BufferedReader;
@@ -19,32 +18,32 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+// HTTP
+import java.net.HttpURLConnection;
 
-// ** Data Structures **
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.ArrayList;
+// *** Robot rules check (as Regular Expressions)
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+// ** Data Structures ** (Queue)
 
 // ** link Normalization **
 import java.net.URL;
 import java.net.URLEncoder;
 
-
 //  ---------------------   Code    ----------------------------
 public class Main {
 
-
-
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         int ThreadsNo = ReadThreadNumber();
 
-//        Threads Crawler
-        ThreadsCrawler myThreadsCrawler =new ThreadsCrawler(ThreadsNo);
+        // Threads Crawler
+        ThreadsCrawler myThreadsCrawler = new ThreadsCrawler(ThreadsNo);
+
     }
 
-    private static int ReadThreadNumber()
-    {
+    private static int ReadThreadNumber() {
         int ThreadsNo = 0;
 
         System.out.println("Admin: Reading threads number");
@@ -54,13 +53,15 @@ public class Main {
         // Reading data using readLine
         try {
             ThreadsNo = Integer.parseInt(reader.readLine());
-            while(ThreadsNo <= 0) {
+            while (ThreadsNo <= 0) {
                 System.out.print("Enter valid value.. ");
                 ThreadsNo = Integer.parseInt(reader.readLine());
             }
 
-        } catch (IOException e) {e.getStackTrace();}
-        // Printing the read line
+        } catch (IOException e) {
+            e.getStackTrace();
+        }
+        // Printing ThreadsNo
         System.out.println(ThreadsNo);
 
         return ThreadsNo;
@@ -75,45 +76,46 @@ class ThreadsCrawler {
 
     }
 
-    private void run(int ThreadsNum){
-        ArrayList<Thread> threads=new ArrayList<>();
+    private void run(int ThreadsNum) {
+        ArrayList<Thread> threads = new ArrayList<>();
         Crawler c = new Crawler();
 
-        CreateThreads(threads,ThreadsNum,c);
-        StartThreads(threads,ThreadsNum);
-        JoinThreads(threads,ThreadsNum);
+        CreateThreads(threads, ThreadsNum, c);
+        StartThreads(threads, ThreadsNum);
+        JoinThreads(threads, ThreadsNum);
 
         System.out.println("Crawler: Print Out");
 
         System.out.println("Crawler: Finish.");
     }
 
-    private void CreateThreads(ArrayList<Thread> threads,int ThreadsNum, Crawler c){
-        for (int i=0;i<ThreadsNum;i++) {
+    private void CreateThreads(ArrayList<Thread> threads, int ThreadsNum, Crawler c) {
+        for (int i = 0; i < ThreadsNum; i++) {
             threads.add(new Thread(c));
         }
     }
 
-    private void StartThreads(ArrayList<Thread> threads,int ThreadsNum)
-    {
-        for (int i=0;i<ThreadsNum;i++) {
+    private void StartThreads(ArrayList<Thread> threads, int ThreadsNum) {
+        for (int i = 0; i < ThreadsNum; i++) {
             threads.get(i).start();
         }
     }
 
-    private void JoinThreads(ArrayList<Thread> threads,int ThreadsNum){
-        for (int i=0;i<ThreadsNum;i++) {
-            try{
+    private void JoinThreads(ArrayList<Thread> threads, int ThreadsNum) {
+        for (int i = 0; i < ThreadsNum; i++) {
+            try {
                 threads.get(i).join();
-            }catch (Exception e){e.getStackTrace();}
+            } catch (Exception e) {
+                e.getStackTrace();
+            }
         }
     }
 }
 
 class Crawler implements Runnable {
 
-    private final Queue<String> links= new LinkedList<>();
-    private final ArrayList<String> visited= new ArrayList<>();
+    private final Queue<String> links = new LinkedList<>();
+    private final ArrayList<String> visited = new ArrayList<>();
     private final ArrayList<Document> docs = new ArrayList<>();
     private static final Object myLock = new Object();
 
@@ -124,7 +126,8 @@ class Crawler implements Runnable {
         ReadSeedLinks();
 
     }
-    private void ReadSeedLinks(){
+
+    private void ReadSeedLinks() {
         try {
             File myObj = new File("src/Crawler/seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
@@ -140,43 +143,54 @@ class Crawler implements Runnable {
     }
 
     public void run() {
-        System.out.println("Thread "+Thread.currentThread().getId()+" Entered run");
+        System.out.println("Thread " + Thread.currentThread().getId() + " Entered run");
         doWork();
-        System.out.println("Thread "+Thread.currentThread().getId()+" Left run");
+        System.out.println("Thread " + Thread.currentThread().getId() + " Left run");
     }
-    private void doWork(){
+
+    private void doWork() {
         try {
-        crawler();
-    }catch (Exception e){e.getStackTrace();}
+            crawler();
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
     }
+
+    // =================================================================
+    // =========================== Crawling ======================
+    // =================================================================
 
     private void crawler() throws Exception {
         int MAX_CRAWLED = 60; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
         String link;
-        while (links.isEmpty())
-        {
+        while (links.isEmpty()) {
             synchronized (myLock) {
                 myLock.wait();
             }
         }
-        while( !links.isEmpty() && docs.size() < MAX_CRAWLED)
-        {
+        while (!links.isEmpty() && docs.size() < MAX_CRAWLED) {
             synchronized (myLock) {
                 while (links.isEmpty())
-                         myLock.wait();
-                link=links.poll();
+                    myLock.wait();
+                link = links.poll();
             }
 
-            if( link != null && !visited.contains(toCompactString(link)) )
+            if (link != null && !visited.contains(toCompactString(link)))
                 crawl(link);
         }
     }
 
-    private void crawl (String link) throws Exception
-    {
-        Document doc= request(link);
+    private void crawl(String link) throws Exception {
+        // check if disallowed link in Robot.txt
+        if (!isAllowedLink(link)) {
+            // it is disallowed then return
+            visited.add(toCompactString(link));
+            return;
+        }
+        // it is allowed then fetch it
+        Document doc = request(link);
 
-        if(doc != null) {
+        if (doc != null) {
             System.out.println("*** " + docs.size() + " ***");
             visited.add(toCompactString(link));
             docs.add(doc);
@@ -187,24 +201,23 @@ class Crawler implements Runnable {
                     myLock.notify();
                 }
             }
-        } else System.out.println("Not Connected");
+        } else
+            System.out.println("Not Connected");
     }
 
-    private Document request (String link) {
-        try{
+    private Document request(String link) {
+        try {
             Connection con = Jsoup.connect(link);
             Document doc = con.get();
 
-            if(con.response().statusCode() == 200)
-            {
-                System.out.println("Thread "+Thread.currentThread().getId()+" | seedLink: " + link); // Delete
-                System.out.println("Title : "+doc.title());    // Delete
+            if (con.response().statusCode() == 200) {
+                System.out.println("Thread " + Thread.currentThread().getId() + " | seedLink: " + link); // Delete
+                System.out.println("Title : " + doc.title()); // Delete
 
-                return  doc;
+                return doc;
             }
             return null;
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             return null;
         }
     }
@@ -265,6 +278,112 @@ class Crawler implements Runnable {
         }
 
         return sb.toString();
+    }
+
+    // ========================================================
+    // ====================== robot.txt ==================
+    // ========================================================
+
+    // HashMap with key is hostLink and value is ArrayList<String> of RobotFileLines
+    private static HashMap<String, ArrayList<String>> RobotsTxt = new HashMap<>();
+
+    // Take URL --> return robotFileLine in ArrayList
+    private static void fetchRobotTxt(URL url) {
+        // list of robots.txt lines
+        ArrayList<String> rulesLines = new ArrayList<>();
+
+        try {
+            // Get connection
+            URL link = new URL(url.getProtocol() + "://" + url.getHost() + "/robots.txt");
+            HttpURLConnection connection = (HttpURLConnection) link.openConnection();
+
+            // Open robots.txt as file and read line by line
+            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+
+            while ((line = input.readLine()) != null) {
+                rulesLines.add(line.toLowerCase());
+            }
+        } catch (Exception e) {
+            return;
+        }
+
+        synchronized (myLock) {
+            RobotsTxt.put(url.getHost(), rulesLines);
+        }
+    }
+
+    // Takes robotFile lines in ArrayList and crawlerUserAgent --> Return Disallowed
+    // rules
+    private static ArrayList<String> praseRobotTxt(ArrayList<String> robotFile, String userAgent) {
+        ArrayList<String> disallowed = new ArrayList<>();
+        // Rule
+        String ruleUserAgent = null;
+
+        for (String line : robotFile) {
+
+            line = line.toLowerCase();
+
+            // get ruleUserAgent
+            if (line.startsWith("user-agent:")) {
+                ruleUserAgent = line.substring(line.indexOf(":") + 1).trim();
+            }
+            // get disallowRule
+            else if (userAgent.equals(ruleUserAgent) && line.startsWith("disallow:")) {
+                String rule = line.substring(line.indexOf(":") + 1).trim();
+
+                rule = rule.replaceAll("\\*", ".*"); // Matches any sequence of chars
+                rule = rule.replaceAll("\\?", "[?]"); // Matches the question mark char
+
+                if (rule.length() > 0) {
+                    disallowed.add(rule);
+                    // System.out.println("Rule is: " + rule);
+                }
+            }
+        }
+
+        return disallowed;
+    }
+
+    // Takes String hostLink --> Return if robotFile fetched before
+    private static boolean isFetchedRobotsTxt(String host) {
+        return RobotsTxt.containsKey(host);
+    }
+
+    private static boolean checkRules(String link, ArrayList<String> hostRules) {
+        for (String rule : hostRules) {
+            try {
+                Pattern pat = Pattern.compile(rule);
+                Matcher matcher = pat.matcher(link);
+
+                if (matcher.find()) {
+                    return true;
+                }
+            } catch (PatternSyntaxException e) {
+                // System.err.println(rule + ": pattern exception, " + e.getMessage());
+                // Output.log(rule + ": pattern exception, " + e.getMessage());
+                e.getStackTrace();
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAllowedLink(String link) {
+        URL url = null;
+        try {
+            url = new URL(link);
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
+        if (!isFetchedRobotsTxt(url.getHost())) {
+            // fetch rules
+            fetchRobotTxt(url);
+
+        }
+
+        // check rules
+        return !checkRules(link, praseRobotTxt(RobotsTxt.get(url.getHost()), "*"));
+
     }
 
 }
