@@ -8,7 +8,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import opennlp.tools.stemmer.PorterStemmer;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -76,6 +76,8 @@ public class Indexer {
         urlArrayList.add(new URL("https://jsoup.org/cookbook/"));
         urlArrayList.add(new URL("https://www.wikipedia.org/"));
 
+        PorterStemmer stemmer=new PorterStemmer();
+
 
         for (URL SamirURL :
                 urlArrayList
@@ -107,12 +109,25 @@ public class Indexer {
             String Words[];
             Words = bodyText.split(" ");
 
+            for(int i=0;i<Words.length;i++)
+            {
+                Words[i]=stemmer.stem(Words[i].toString());
+            }
+
             long[] freqNum = new long[bodyText.length()];
 
             //finding freq of all word in a doc
             var freq = Arrays.stream(Words).collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
 
             var uniqeWords = Arrays.stream(Words).distinct().toArray();
+//            Arrays.stream(uniqeWords).map(word->stemmer.stem(word.toString()));
+
+
+//            System.out.println(uniqeWords[0].toString());
+//            for(int i=0;i<uniqeWords.length;i++)
+//            {
+//                uniqeWords[i]=stemmer.stem(uniqeWords[i].toString());
+//            }
 
             ArrayList<String> modifiedWords = new ArrayList<>();
 //        ArrayList<Integer>Freq=new ArrayList<>();
@@ -133,6 +148,7 @@ public class Indexer {
                     websites.add(SamirURL.toString());
                     freqDocument.append(modifiedWords.get(i), websites);
                 }
+
         IndexerCollection.insertOne(freqDocument);
 
 //                System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
