@@ -48,7 +48,11 @@ public class Indexer {
 
         MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
 
+//        MongoDB.createCollection("IndexerDB");
+
         MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
+        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
+
 //        Document tst = new Document();
 
 
@@ -76,12 +80,10 @@ public class Indexer {
         urlArrayList.add(new URL("https://jsoup.org/cookbook/"));
         urlArrayList.add(new URL("https://www.wikipedia.org/"));
 
-        PorterStemmer stemmer=new PorterStemmer();
+        PorterStemmer stemmer = new PorterStemmer();
 
 
-        for (URL SamirURL :
-                urlArrayList
-        ) {
+        for (URL SamirURL : urlArrayList) {
 
             URLConnection connection = SamirURL.openConnection();
 
@@ -106,12 +108,23 @@ public class Indexer {
             bodyText = bodyText.replaceAll("/|\\\\|", "");
             bodyText = bodyText.replaceAll("©|»|-|\\{|}|=", "");
 
+
+            //TODO: make the document out of for loop
+            String htmlWholeBody = bodyText;
+            Document htmlDoc = new Document();
+            htmlDoc.append("html", htmlWholeBody);
+            htmlDoc.append("htmlLink", SamirURL.toString());
+
+
+            
+            if (phraseSearchingCollection.find(htmlDoc).first() == null)
+                phraseSearchingCollection.insertOne(htmlDoc);
+
             String Words[];
             Words = bodyText.split(" ");
 
-            for(int i=0;i<Words.length;i++)
-            {
-                Words[i]=stemmer.stem(Words[i].toString());
+            for (int i = 0; i < Words.length; i++) {
+                Words[i] = stemmer.stem(Words[i].toString());
             }
 
             long[] freqNum = new long[bodyText.length()];
@@ -141,7 +154,7 @@ public class Indexer {
 
             FindIterable<Document> getdoctest = IndexerCollection.find();
             if (getdoctest.first() == null) {
-                Document freqDocument=new Document();
+                Document freqDocument = new Document();
                 for (int i = 0; i < modifiedWords.size(); i++) {
 //
                     ArrayList<String> websites = new ArrayList<>();
@@ -149,7 +162,7 @@ public class Indexer {
                     freqDocument.append(modifiedWords.get(i), websites);
                 }
 
-        IndexerCollection.insertOne(freqDocument);
+                IndexerCollection.insertOne(freqDocument);
 
 //                System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
                 continue;
@@ -190,7 +203,7 @@ public class Indexer {
                 System.out.println(document.size());
                 System.out.println(oldDoc.size());
 
-                Document filter = new Document("_id", (ObjectId)document.get("_id"));
+                Document filter = new Document("_id", (ObjectId) document.get("_id"));
 //
                 IndexerCollection.replaceOne(filter, document);
 //                System.out.println(oldDoc.size());
@@ -347,5 +360,6 @@ public class Indexer {
 
 
     }
+
 
 }
