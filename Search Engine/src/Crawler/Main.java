@@ -41,6 +41,14 @@ public class Main {
         // Threads Crawler
         ThreadsCrawler myThreadsCrawler = new ThreadsCrawler(ThreadsNo);
 
+        // Next line return the docs
+        // myThreadsCrawler.getDocs()
+        // System.out.println(myThreadsCrawler.getDocs().get(5));
+
+    }
+
+    public ArrayList<Document> getDocs(ThreadsCrawler th) {
+        return th.getDocs();
     }
 
     private static int ReadThreadNumber() {
@@ -76,9 +84,10 @@ class ThreadsCrawler {
 
     }
 
+    private static Crawler c = new Crawler();
+
     private void run(int ThreadsNum) {
         ArrayList<Thread> threads = new ArrayList<>();
-        Crawler c = new Crawler();
 
         CreateThreads(threads, ThreadsNum, c);
         StartThreads(threads, ThreadsNum);
@@ -89,6 +98,10 @@ class ThreadsCrawler {
         System.out.println("Crawler: Finish.");
     }
 
+    public ArrayList<Document> getDocs() {
+        return c.getDocs();
+    }
+
     private void CreateThreads(ArrayList<Thread> threads, int ThreadsNum, Crawler c) {
         for (int i = 0; i < ThreadsNum; i++) {
             threads.add(new Thread(c));
@@ -97,7 +110,6 @@ class ThreadsCrawler {
 
     private void StartThreads(ArrayList<Thread> threads, int ThreadsNum) {
         for (int i = 0; i < ThreadsNum; i++) {
-            threads.get(i).start();
         }
     }
 
@@ -154,6 +166,10 @@ class Crawler implements Runnable {
         } catch (Exception e) {
             e.getStackTrace();
         }
+    }
+
+    public ArrayList<Document> getDocs() {
+        return docs;
     }
 
     // =================================================================
