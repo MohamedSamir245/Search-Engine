@@ -66,7 +66,7 @@ public class Indexer {
                 stopwordsList.add(data);
 //            System.out.println(data);
             }
-            myReader.close();
+                myReader.close();
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
