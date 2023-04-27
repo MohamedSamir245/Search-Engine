@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="opennlp">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../../../mongoAndJsoupFiles/opennlp" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/../../../../mongoAndJsoupFiles/opennlp" recursive="false" />
+  </library>
+</component>

@@ -1,0 +1,52 @@
+.nav{
+    background-color:gray;
+    padding-top:50px;
+    margin-top:20px;
+    text-align:center;
+}
+
+.programmers{
+    background-color: black;
+    color:rgb(3, 87, 140)
+
+}
+
+li{
+    display: inline-block;
+    margin: 10px;
+}
+
+.btn{
+    width:10%;
+    display:inline-block;
+    height:30px;
+    border:0px;
+}
+
+.right{
+    margin-left:20px;
+}
+
+.left{
+    margin-right:20px;
+}
+
+.active{
+    background-color:green;
+    color:white;
+}
+
+.locked{
+    background-color:black;
+    color:gray;
+}
+
+.num{
+    color:white;
+    display:inline-block;
+}
+
+.total{
+    text-align:center;
+    color:yellow;
+}
