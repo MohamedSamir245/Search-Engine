@@ -33,12 +33,13 @@ client
 const db = client.db(dbName);
 const IndexerCollection = db.collection("IndexerDB");
 
-const doc = IndexerCollection.find();
+const doc = IndexerCollection.find({"Word":"Instant"});
 
 console.log(
   doc.toArray().then((val) => {
     console.log(val);
   })
 );
+
 
 // console.log(db.databaseName);
