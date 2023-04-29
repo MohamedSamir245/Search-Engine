@@ -47,7 +47,8 @@ app.post("/search", (req, res) => {
 
   var links;
 
-  console.log("Searching....");
+  console.log("Searching...");
+
   if (doc) {
     doc.toArray().then((val) => {
       if (val.at(0)) {

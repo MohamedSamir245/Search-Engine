@@ -8,7 +8,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
         <button
           className="active left btn"
           onClick={() => {
-            setViewed(data.slice(indexBegin - 10, indexBegin));
+            setViewed(viewed.slice(indexBegin - 10, indexBegin));
             setIndexBegin(indexBegin - 10);
           }}
         >
@@ -21,13 +21,13 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
         {" "}
         {data.length === 0 ? <b>-</b> : indexBegin / 10 + 1}{" "}
       </p>
-      {indexBegin === data.length - 10 || data.length === 0 ? (
+      {indexBegin === viewed.length - 10 || viewed.length === 0 ? (
         <button className="locked right btn">{">>"}</button>
       ) : (
         <button
           className="active right btn"
           onClick={() => {
-            setViewed(data.slice(indexBegin + 10, indexBegin + 20));
+            setViewed(viewed.slice(indexBegin + 10, indexBegin + 20));
             setIndexBegin(indexBegin + 10);
           }}
         >
@@ -37,7 +37,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
       <div className="total">
         <b>
           Total pages:{" "}
-          {data.length % 10 === 0 ? data.length / 10 : data.length / 10 + 1}
+          {data.length % 10 === 0 ? viewed.length / 10 : viewed.length / 10 + 1}
         </b>
       </div>
       <div className="programmers">

@@ -19,6 +19,15 @@ public class QueryProcessor {
     public static void main(String[] args) throws IOException {
         //TODO take the query and assign it to (Query) variable
 
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+
+        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
+        MongoCollection<Document> searchDB = MongoDB.getCollection("searchDB");
+
+        Document result=searchDB.find().first();
+
+
+
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter query");
         String input = scanner.nextLine();
