@@ -34,10 +34,15 @@ public class QueryProcessor {
 
                 searchDB.deleteOne(result);
 
+                System.out.println(Query);
 
-                String[] urls = getURLs(getQueryWords(Query));
 
-                Document r=new Document("URLs",urls);
+                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query))));
+
+
+
+                Document r = new Document();
+                r.append("URLs",urls);
 
                 resultDB.insertOne(r);
 

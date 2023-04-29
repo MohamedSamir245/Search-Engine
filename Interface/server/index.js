@@ -1,6 +1,7 @@
 const express = require("express");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require("cors");
+const { ObjectId } = require("mongodb");
 
 const app = express();
 
@@ -32,6 +33,8 @@ client
 
 const db = client.db(dbName);
 const IndexerCollection = db.collection("IndexerDB");
+const searchDB = db.collection("searchDB");
+const resultDB = db.collection("resultDB");
 const PhraseCollection = db.collection("phraseSearchingDB");
 
 app.post("/search", (req, res) => {
@@ -43,25 +46,122 @@ app.post("/search", (req, res) => {
     return;
   }
 
-  const doc = IndexerCollection.find({ Word: query });
+  const document = { _id: new ObjectId(), Query: query };
 
-  var links;
-
-  console.log("Searching...");
-
-  if (doc) {
-    doc.toArray().then((val) => {
-      if (val.at(0)) {
-        links = val.at(0).URLs;
-
-        console.log(links);
-
-        res.send({ links: links });
-      } else {
-        console.log("Not Found");
-
-        res.send("Not Found");
+  searchDB
+    .insertOne(document, (err, res) => {
+      if (err) {
+        console.log(err);
       }
+    })
+    .then(() => {
+      console.log("query inserted");
+    })
+    .then(() => {
+      resultDB
+        .find()
+        .toArray((err, documents) => {
+          if (err) throw err;
+
+          return documents;
+        })
+        .then((documents) => {
+          if (documents.length === 0) {
+            console.log("No documents found.");
+          } else {
+            res.send({ links: documents[0].URLs });
+            resultDB.deleteMany(documents[0]);
+          }
+        });
+      //   const resultDB = db.collection("resultDB");
+
+      //   const waitForDocument = (callback) => {
+      // resultDB.findOne({}, (err, document) => {
+      //   if (err) throw err;
+      //
+      //   if (document) {
+      // callback(document);
+      //   } else {
+      // setTimeout(() => {
+      //   waitForDocument(callback);
+      // }, 1000);
+      //   }
+      // });
+      //   };
+
+      //   waitForDocument((document) => {
+      // console.log(document);
+      // client.close();
+      //   });
+      //   console.log("fififi");
+
+      //   let f = 0;
+      //   //   while (f === 0) {
+      //   resultDB
+      //     .find()
+      //     .toArray((err, result) => {
+      //       if (err) throw err;
+
+      //       //   setTimeout(() => {
+      //       return result;
+      //       //   }, 5000);
+
+      //       //   return result;
+      //     })
+      //     //   eslint-disable-next-line no-loop-func
+      //     .then((result) => {
+      //       var links;
+
+      //       console.log(result);
+      //       if (result.length > 0) {
+      //         links = result[0].URLs;
+      //         res.send({ links: links });
+
+      //         resultDB.deleteMany(result[0]);
+      //         //   f = 1;
+      //       }
+      //     }, 5000);
+      //   }
     });
-  }
+
+  //   while (true) {
+  //   const doc = resultDB.findOne();
+
+  //   if (doc) {
+  // doc.toArray().then((val) => {
+  // console.log(doc);
+  //   if (val.at(0)) {
+  // links = val.at(0).URLs;
+  // console.log(val.at(0).URLs);
+
+  // res.send("");
+  //   } else {
+  // console.log("Not Found");
+
+  // res.send("Not Found");
+  //   }
+  // });
+  //   }
+  //   }
+  //   const doc = IndexerCollection.find({ Word: query });
+
+  //   var links;
+
+  //   console.log("Searching...");
+
+  //   if (doc) {
+  //     doc.toArray().then((val) => {
+  //       if (val.at(0)) {
+  //         links = val.at(0).URLs;
+
+  //         console.log(links);
+
+  //         res.send({ links: links });
+  //       } else {
+  //         console.log("Not Found");
+
+  //         res.send("Not Found");
+  //       }
+  //     });
+  //   }
 });
