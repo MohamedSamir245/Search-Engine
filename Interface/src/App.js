@@ -28,7 +28,7 @@ function App() {
         query={querySearch}
       />
       {/* {console.log(querySearch)} */}
-      <div>{querySearch}</div>
+      {/* <div>{querySearch}</div> */}
       {/* {data.length===0?
     <></>  
     :

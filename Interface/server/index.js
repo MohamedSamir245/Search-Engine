@@ -24,8 +24,8 @@ client
 
     // (client) => client.db(dbName).listCollections().toArray() // Returns a promise that will resolve to the list of the collections
   )
-  .catch(() => {
-    console.log("Unable to Connect to DB");
+  .catch((e) => {
+    console.log(e);
   });
 //   .then((cols) => console.log("Collections", cols))
 //   .finally(() => client.close());
