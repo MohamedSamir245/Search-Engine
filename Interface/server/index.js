@@ -44,7 +44,6 @@ app.post("/search", (req, res) => {
   }
 
   const doc = IndexerCollection.find({ Word: query });
-  // console.log(query)
 
   var links;
 
@@ -65,5 +64,3 @@ app.post("/search", (req, res) => {
     });
   }
 });
-
-// console.log(db.databaseName);

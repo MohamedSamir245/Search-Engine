@@ -21,7 +21,10 @@ const SearchEngine = (props) => {
             alldics.push(dic);
           }
           props.setViewed(alldics);
-        }
+          }
+        else {
+            props.setViewed([])
+          }
       })
       .catch((error) => {
         console.log(error);
