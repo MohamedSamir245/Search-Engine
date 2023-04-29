@@ -59,14 +59,14 @@ public class Indexer {
         ArrayList<String> stopwordsList = new ArrayList<>();
 
         try {
-            File stopFile = new File("stop_words_english.txt");
+            File stopFile = new File("D:\\CMP1Materials\\SecondYear\\SecondTerm\\APT\\Project\\Search Engine\\Search Engine\\stop_words_english.txt");
             Scanner myReader = new Scanner(stopFile);
             while (myReader.hasNext()) {
                 String data = myReader.next();
                 stopwordsList.add(data);
 //            System.out.println(data);
             }
-                myReader.close();
+            myReader.close();
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -116,7 +116,6 @@ public class Indexer {
             htmlDoc.append("htmlLink", SamirURL.toString());
 
 
-            
             if (phraseSearchingCollection.find(htmlDoc).first() == null)
                 phraseSearchingCollection.insertOne(htmlDoc);
 
@@ -151,63 +150,86 @@ public class Indexer {
                 }
             }
 
-
-            FindIterable<Document> getdoctest = IndexerCollection.find();
-            if (getdoctest.first() == null) {
-                Document freqDocument = new Document();
-                for (int i = 0; i < modifiedWords.size(); i++) {
-//
+            for (int i = 0; i < modifiedWords.size(); i++) {
+                Document searchQuery = new Document("Word", modifiedWords.get(i).toString());
+                Document result=IndexerCollection.find(searchQuery).first();
+                if (result == null) {
                     ArrayList<String> websites = new ArrayList<>();
                     websites.add(SamirURL.toString());
-                    freqDocument.append(modifiedWords.get(i), websites);
+                    Document freqDocument = new Document("Word",modifiedWords.get(i).toString());
+                    freqDocument.append("URLs",websites);
+
+                    IndexerCollection.insertOne(freqDocument);
                 }
+                else
+                {
+                    ArrayList<String>links= (ArrayList<String>)result.get("URLs");
 
-                IndexerCollection.insertOne(freqDocument);
+                    links.add(SamirURL.toString());
+                    result.replace("URLs",links);
 
-//                System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
-                continue;
+                    IndexerCollection.replaceOne(searchQuery,result);
+
+                }
             }
-            for (Document document : getdoctest) {
-
-                Document oldDoc = document;
-//            System.out.println(document.toJson());
-//            System.out.println(document.get("jsoup"));
-                for (int i = 0; i < modifiedWords.size(); i++) {
-                    ArrayList<String> newurls = new ArrayList<>();
-
-                    if (document.get(modifiedWords.get(i)) != null) {
-                        if (document.get(modifiedWords.get(i)).getClass() == ArrayList.class)
-                            newurls = (ArrayList<String>) document.get(modifiedWords.get(i));
-                        if (newurls != null) {
-                            if (!newurls.contains(SamirURL.toString())) {
-                                newurls.add(SamirURL.toString());
-                                document.replace(modifiedWords.get(i), newurls);
-
-                            }
-                        }
-                    } else {
-                        ArrayList<String> tmp = new ArrayList<>();
-                        tmp.add(SamirURL.toString());
-                        document.append(modifiedWords.get(i), tmp);
-
-                    }
 
 
-                }
-//                System.out.println("iam");
-
-//                Bson updatedOperation = new Document("$set", document);
-
-//            IndexerCollection.updateOne( , updatedOperation);
-//                System.out.println(document.size());
-                System.out.println(document.size());
-                System.out.println(oldDoc.size());
-
-                Document filter = new Document("_id", (ObjectId) document.get("_id"));
+//            FindIterable<Document> getdoctest = IndexerCollection.find();
+//            if (getdoctest.first() == null) {
+//                for (int i = 0; i < modifiedWords.size(); i++) {
+//                    Document freqDocument = new Document();
+//                    ArrayList<String> websites = new ArrayList<>();
+//                    websites.add(SamirURL.toString());
+//                    freqDocument.append(modifiedWords.get(i), websites);
+//                    IndexerCollection.insertOne(freqDocument);
 //
-                IndexerCollection.replaceOne(filter, document);
+//                }
+//
+//
+////                System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+//                continue;
+//            }
+//            for (Document document : getdoctest) {
+//
+//                Document oldDoc = document;
+////            System.out.println(document.toJson());
+////            System.out.println(document.get("jsoup"));
+//                for (int i = 0; i < modifiedWords.size(); i++) {
+//                    ArrayList<String> newurls = new ArrayList<>();
+//
+//                    if (document.get(modifiedWords.get(i)) != null) {
+//                        if (document.get(modifiedWords.get(i)).getClass() == ArrayList.class)
+//                            newurls = (ArrayList<String>) document.get(modifiedWords.get(i));
+//                        if (newurls != null) {
+//                            if (!newurls.contains(SamirURL.toString())) {
+//                                newurls.add(SamirURL.toString());
+//                                document.replace(modifiedWords.get(i), newurls);
+//
+//                            }
+//                        }
+//                    } else {
+//                        ArrayList<String> tmp = new ArrayList<>();
+//                        tmp.add(SamirURL.toString());
+//                        document.append(modifiedWords.get(i), tmp);
+//
+//                    }
+//
+//
+//                }
+////                System.out.println("iam");
+//
+////                Bson updatedOperation = new Document("$set", document);
+//
+////            IndexerCollection.updateOne( , updatedOperation);
+////                System.out.println(document.size());
+//                System.out.println(document.size());
 //                System.out.println(oldDoc.size());
-            }
+//
+//                Document filter = new Document("_id", (ObjectId) document.get("_id"));
+////
+//                IndexerCollection.replaceOne(filter, document);
+////                System.out.println(oldDoc.size());
+//            }
             ///////////////////////////////////////////////
 
         }

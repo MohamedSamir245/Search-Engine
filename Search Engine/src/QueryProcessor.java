@@ -13,16 +13,17 @@ import com.mongodb.client.MongoDatabase;
 import opennlp.tools.stemmer.PorterStemmer;
 import org.bson.Document;
 
+import javax.print.Doc;
+
 
 public class QueryProcessor {
-    public static void main(String[]args)
-    {
-        Scanner scanner=new Scanner(System.in);
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
         System.out.println("Enter query");
-        String input=scanner.nextLine();
+        String input = scanner.nextLine();
 
-        ArrayList<String>urls=new ArrayList<>();
-        urls=getURLs(getQueryWords(input));
+        ArrayList<String> urls = new ArrayList<>();
+        urls = getURLs(getQueryWords(input));
 
         urls.forEach(System.out::println);
     }
@@ -54,20 +55,25 @@ public class QueryProcessor {
 
         ArrayList<String> links = new ArrayList<>();
 
-        if (doc != null) {
-            ArrayList<String>tmplinks=new ArrayList<>();
-            for (int i = 0; i < words.size(); i++) {
+        for (int i = 0; i < words.size(); i++) {
 
-                ArrayList<String> sub = (ArrayList<String>) doc.get(words.get(i));
-                tmplinks.addAll(sub);
-            }
-            var un = tmplinks.stream().distinct().toArray();
-            for(int i=0;i<un.length;i++)
-            {
-                links.add(un[i].toString());
+            Document search = new Document("Word", words.get(i).toString());
+
+            Document result = IndexerCollection.find(search).first();
+
+            if (result != null) {
+                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
+                links.addAll(sub);
+
             }
 
         }
-        return  links;
+        var un = links.stream().distinct().toArray();
+        links.clear();
+//
+        for (int i = 0; i < un.length; i++) {
+            links.add(un[i].toString());
+        }
+        return links;
     }
 }

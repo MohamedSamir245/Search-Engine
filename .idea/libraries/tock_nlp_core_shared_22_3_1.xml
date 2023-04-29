@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="tock-nlp-core-shared-22.3.1">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../../mongoAndJsoupFiles/opennlp/ai/tock/tock-nlp-core-shared/22.3.1/tock-nlp-core-shared-22.3.1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
