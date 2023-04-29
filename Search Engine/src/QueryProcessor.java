@@ -46,7 +46,13 @@ public class QueryProcessor {
                 Phrase=words__phrase[1];
                 wordsOnly= words__phrase[2].split(" ");
             }
-            else {
+            else if(input.endsWith("\""))
+            {
+                Phrase=words__phrase[1];
+                wordsOnly= words__phrase[0].split(" ");
+            }
+            else
+            {
                 Phrase=words__phrase[1];
                 tempWords=words__phrase[0];
                 tempWords+=words__phrase[2];
