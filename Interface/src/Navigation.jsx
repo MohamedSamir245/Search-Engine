@@ -19,9 +19,9 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
       )}
       <p className="num">
         {" "}
-        {viewed.length === 0 ? <b>-</b> : indexBegin / 10 + 1}{" "}
+        {viewed.length === 0 ? <b>-</b> : Math.trunc(indexBegin / 10) + 1}{" "}
       </p>
-      {indexBegin === viewed.length - 10 || viewed.length === 0 ? (
+      {indexBegin === viewed.length - 10 || viewed.length === 0 || viewed.length <=10 ? (
         <button className="locked right btn">{">>"}</button>
       ) : (
         <button
@@ -37,7 +37,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
       <div className="total">
         <b>
           Total pages:{" "}
-          {viewed.length % 10 === 0 ? viewed.length / 10 : viewed.length / 10 + 1}
+          {viewed.length % 10 === 0 ? viewed.length / 10 : Math.trunc(viewed.length / 10) + 1}
         </b>
       </div>
       <div className="programmers">
