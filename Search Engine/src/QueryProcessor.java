@@ -32,7 +32,7 @@ public class QueryProcessor {
             if (result != null) {
                 String Query = (String) result.get("Query");
 
-                searchDB.deleteOne(result);
+                searchDB.deleteMany(result);
 
                 System.out.println(Query);
 
@@ -42,7 +42,9 @@ public class QueryProcessor {
 
 
                 Document r = new Document();
+                r.append("Query",Query);
                 r.append("URLs",urls);
+
 
                 resultDB.insertOne(r);
 

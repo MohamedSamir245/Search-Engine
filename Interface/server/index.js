@@ -56,73 +56,86 @@ app.post("/search", (req, res) => {
     })
     .then(() => {
       console.log("query inserted");
-    })
-    .then(() => {
-      resultDB
-        .find()
-        .toArray((err, documents) => {
-          if (err) throw err;
-
-          return documents;
-        })
-        .then((documents) => {
-          if (documents.length === 0) {
-            console.log("No documents found.");
+      setTimeout(() => {
+        let doc = resultDB.find({ Query: query });
+        doc.toArray().then((val) => {
+          if (val.length !== 0) {
+            res.send({ links: val.at(0).URLs });
+            resultDB.deleteMany(val.at(0));
           } else {
-            res.send({ links: documents[0].URLs });
-            resultDB.deleteMany(documents[0]);
+            console.log("Not Found");
+
+            res.send("Not Found");
           }
         });
-      //   const resultDB = db.collection("resultDB");
-
-      //   const waitForDocument = (callback) => {
-      // resultDB.findOne({}, (err, document) => {
-      //   if (err) throw err;
-      //
-      //   if (document) {
-      // callback(document);
-      //   } else {
-      // setTimeout(() => {
-      //   waitForDocument(callback);
-      // }, 1000);
-      //   }
-      // });
-      //   };
-
-      //   waitForDocument((document) => {
-      // console.log(document);
-      // client.close();
-      //   });
-      //   console.log("fififi");
-
-      //   let f = 0;
-      //   //   while (f === 0) {
-      //   resultDB
-      //     .find()
-      //     .toArray((err, result) => {
-      //       if (err) throw err;
-
-      //       //   setTimeout(() => {
-      //       return result;
-      //       //   }, 5000);
-
-      //       //   return result;
-      //     })
-      //     //   eslint-disable-next-line no-loop-func
-      //     .then((result) => {
-      //       var links;
-
-      //       console.log(result);
-      //       if (result.length > 0) {
-      //         links = result[0].URLs;
-      //         res.send({ links: links });
-
-      //         resultDB.deleteMany(result[0]);
-      //         //   f = 1;
-      //       }
-      //     }, 5000);
-      //   }
+      }, 3000);
     });
+  // .then(() => {
+  //   resultDB
+  //     .find()
+  //     .toArray((err, documents) => {
+  //       if (err) throw err;
+
+  //       return documents;
+  //     })
+  //     .then((documents) => {
+  //       if (documents.length === 0) {
+  //         console.log("No documents found.");
+  //       } else {
+  //         res.send({ links: documents[0].URLs });
+  //         resultDB.deleteMany(documents[0]);
+  //       }
+  //     });
+  //   const resultDB = db.collection("resultDB");
+
+  //   const waitForDocument = (callback) => {
+  // resultDB.findOne({}, (err, document) => {
+  //   if (err) throw err;
+  //
+  //   if (document) {
+  // callback(document);
+  //   } else {
+  // setTimeout(() => {
+  //   waitForDocument(callback);
+  // }, 1000);
+  //   }
+  // });
+  //   };
+
+  //   waitForDocument((document) => {
+  // console.log(document);
+  // client.close();
+  //   });
+  //   console.log("fififi");
+
+  //   let f = 0;
+  //   //   while (f === 0) {
+  //   resultDB
+  //     .find()
+  //     .toArray((err, result) => {
+  //       if (err) throw err;
+
+  //       //   setTimeout(() => {
+  //       return result;
+  //       //   }, 5000);
+
+  //       //   return result;
+  //     })
+  //     //   eslint-disable-next-line no-loop-func
+  //     .then((result) => {
+  //       var links;
+
+  //       console.log(result);
+  //       if (result.length > 0) {
+  //         links = result[0].URLs;
+  //         res.send({ links: links });
+
+  //         resultDB.deleteMany(result[0]);
+  //         //   f = 1;
+  //       }
+  //     }, 5000);
+  //   }
+  // });
 
   //   while (true) {
   //   const doc = resultDB.findOne();
@@ -143,6 +156,16 @@ app.post("/search", (req, res) => {
   // });
   //   }
   //   }
+
+  //   let doc = resultDB.find({ Query: query });
+  //   console.log(doc.toArray().);
+  //   while (doc.toArray().length===0) {
+  //     doc = resultDB.find({ Query: query });
+  //   }
+
+  //   doc.toArray().then((val) => {
+  //     console.log(val);
+  //   });
   //   const doc = IndexerCollection.find({ Word: query });
 
   //   var links;
