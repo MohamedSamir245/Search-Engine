@@ -14,8 +14,6 @@ import com.mongodb.client.MongoDatabase;
 import opennlp.tools.stemmer.PorterStemmer;
 import org.bson.Document;
 
-import javax.print.Doc;
-
 
 public class QueryProcessor {
     public static void main(String[] args) throws IOException {
@@ -68,8 +66,6 @@ public class QueryProcessor {
 
         String[] newWordsOnly= Arrays.stream(wordsOnly).filter(x->x!="").toArray(String[]::new);
 
-//        System.out.println(newWordsOnly.length);
-
         PorterStemmer stemmer = new PorterStemmer();
 
         String finalWords[]=new String[newWordsOnly.length+1];
@@ -86,19 +82,13 @@ public class QueryProcessor {
 //                    System.out.print(Phrase);
                 continue;
             }
-//            System.out.println(newWordsOnly[i]);
             finalWords[i]=stemmer.stem(newWordsOnly[i]);
 
         }
 
         String[]finalUniqueWords= Arrays.stream(finalWords).distinct().toArray(String[]::new);
 
-
-
         return finalUniqueWords;
-
-
-
     }
 
     static String[]getURLs(String[]words)
@@ -145,7 +135,6 @@ public class QueryProcessor {
             }
         }
         String[]finalLinks= links.stream().distinct().toArray(String[]::new);
-
         return finalLinks;
 
     }

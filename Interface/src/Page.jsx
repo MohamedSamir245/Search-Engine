@@ -1,16 +1,14 @@
- import "./Page.css"
+import "./Page.css";
 
-const Page=({pageName,pageLink,pageParagraph})=>{
-    return(
+const Page = ({ pageName, pageLink, pageParagraph }) => {
+  return (
     <>
-    <div class="container">
-        <h2>
-            {pageName}
-        </h2>
+      <div className="container">
+        <h2>{pageName}</h2>
         <a href={pageLink}>{pageLink}</a>
-        <p class="paragraph">{pageParagraph}</p>
-    </div>
+        <p className="paragraph">{pageParagraph}</p>
+      </div>
     </>
-    )
-}
+  );
+};
 export default Page;

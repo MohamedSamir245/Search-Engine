@@ -32,14 +32,38 @@ client
 
 const db = client.db(dbName);
 const IndexerCollection = db.collection("IndexerDB");
+const PhraseCollection = db.collection("phraseSearchingDB");
 
-const doc = IndexerCollection.find({"Word":"Instant"});
+app.post("/search", (req, res) => {
+  const query = req.body.query;
+  if (query === "") {
+    console.log("Empty Query");
 
-console.log(
-  doc.toArray().then((val) => {
-    console.log(val);
-  })
-);
+    res.send("Not Found");
+    return;
+  }
 
+  const doc = IndexerCollection.find({ Word: query });
+  // console.log(query)
+
+  var links;
+
+  console.log("Searching....");
+  if (doc) {
+    doc.toArray().then((val) => {
+      if (val.at(0)) {
+        links = val.at(0).URLs;
+
+        console.log(links);
+
+        res.send({ links: links });
+      } else {
+        console.log("Not Found");
+
+        res.send("Not Found");
+      }
+    });
+  }
+});
 
 // console.log(db.databaseName);
