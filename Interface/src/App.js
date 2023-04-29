@@ -1,6 +1,6 @@
 import React from "react";
 import Page from "./Page";
-import { data } from "./PagesData.js";
+//import { data } from "./PagesData.js";
 import SearchEngine from "./SearchEngine";
 import Navigation from "./Navigation";
 import { useState } from "react";
@@ -27,12 +27,6 @@ function App() {
         setViewed={setViewed}
         query={querySearch}
       />
-      {/* {console.log(querySearch)} */}
-      {/* <div>{querySearch}</div> */}
-      {/* {data.length===0?
-    <></>  
-    :
-    <> */}
       {viewPages}
       <Navigation
         indexBegin={indexBegin}
@@ -40,8 +34,6 @@ function App() {
         viewed={viewed}
         setViewed={setViewed}
       />
-      {/* </> 
-    } */}
     </>
   );
 }

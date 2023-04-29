@@ -1,4 +1,4 @@
-import { data } from "./PagesData";
+//import { data } from "./PagesData";
 import "./Navigation.css";
 
 const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
@@ -19,7 +19,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
       )}
       <p className="num">
         {" "}
-        {data.length === 0 ? <b>-</b> : indexBegin / 10 + 1}{" "}
+        {viewed.length === 0 ? <b>-</b> : indexBegin / 10 + 1}{" "}
       </p>
       {indexBegin === viewed.length - 10 || viewed.length === 0 ? (
         <button className="locked right btn">{">>"}</button>
@@ -37,7 +37,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
       <div className="total">
         <b>
           Total pages:{" "}
-          {data.length % 10 === 0 ? viewed.length / 10 : viewed.length / 10 + 1}
+          {viewed.length % 10 === 0 ? viewed.length / 10 : viewed.length / 10 + 1}
         </b>
       </div>
       <div className="programmers">
