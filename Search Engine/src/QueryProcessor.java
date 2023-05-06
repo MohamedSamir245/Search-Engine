@@ -1,4 +1,5 @@
 //TODO: remove stop words
+//TODO: fix it to work after you changed the IndexerDB
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +12,10 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import opennlp.tools.stemmer.PorterStemmer;
+import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
+
+//import opennlp.tools.stemmer.PorterStemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import org.bson.Document;
 
 
@@ -36,9 +40,10 @@ public class QueryProcessor {
 
                 System.out.println(Query);
 
+//
+                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()))));
 
-                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query))));
-
+                urls.forEach(System.out::println);
 
 
                 Document r = new Document();
@@ -92,19 +97,19 @@ public class QueryProcessor {
 
         String[] newWordsOnly = Arrays.stream(wordsOnly).filter(x -> x != "").toArray(String[]::new);
 
-        PorterStemmer stemmer = new PorterStemmer();
+        SnowballStemmer stemmer = new SnowballStemmer(ENGLISH);
 
         String finalWords[] = new String[newWordsOnly.length + 1];
 
         for (int i = 0; i < newWordsOnly.length + 1; i++) {
             if (i == newWordsOnly.length) {
                 if (Phrase.length() != 0) {
-                    finalWords[i] = stemmer.stem(Phrase);
+                    finalWords[i] = (String) stemmer.stem(Phrase);
                 } else finalWords[i] = "";
 //                    System.out.print(Phrase);
                 continue;
             }
-            finalWords[i] = stemmer.stem(newWordsOnly[i]);
+            finalWords[i] = (String) stemmer.stem(newWordsOnly[i]);
 
         }
 
@@ -117,7 +122,7 @@ public class QueryProcessor {
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
         MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
         MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
-//        Document indexerdoc = IndexerCollection.find().first();
+        Document indexerdoc = IndexerCollection.find().first();
         MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
         FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
@@ -126,15 +131,15 @@ public class QueryProcessor {
 
         for (int i = 0; i < words.length - 1; i++) {
 
-            Document search = new Document("Word", words[i]);
+//            Document search = new Document( words[i]);
+            ArrayList<String> sub = (ArrayList<String>)indexerdoc.get(words[i]);
+//            Document result = IndexerCollection.find(search).first();
 
-            Document result = IndexerCollection.find(search).first();
-
-            if (result != null) {
-                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
+//            if (result != null) {
+//                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
                 links.addAll(sub);
 
-            }
+//            }
 
         }
 
