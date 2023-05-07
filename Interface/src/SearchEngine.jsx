@@ -1,10 +1,19 @@
 import "./SearchEngine.css";
 import Axios from "axios";
+import api from './api/axiosConfig'
 import searchimage from "./images/search.png";
 
 const SearchEngine = (props) => {
 //   const https = require("https");
   const cheerio = require("cheerio");
+
+
+  // const handleSearchButton2 = async () => {
+  //   fetch(`http://localhost:8080/api/search/${props.query}`,{mode:'no-cors'}).then((res) => {
+  //   console.log(res)
+  // });
+    
+  // }
 
   const handleSearchButton = async () => {
     await Axios.post("http://localhost:3001/search", {
@@ -36,6 +45,7 @@ const SearchEngine = (props) => {
         console.log(error);
         setTimeout(() => {}, 5000);
       });
+    // handleSearchButton2();
   };
   return (
     <div className="searchForm">
