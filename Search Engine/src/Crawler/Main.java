@@ -1,10 +1,10 @@
-package Crawler;// TODO: save State
+// TODO: save State
 
 // ----------------- Libraries -----------------------
 
 // *** Reading data from file ***
-import java.io.File; // Import the File class
-import java.io.FileNotFoundException; // Import this class to handle errors
+import java.io.File;  // Import the File class
+import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+
 // ** Data Structures ** (Queue)
 
 // ** link Normalization **
@@ -33,30 +34,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-
-import java.net.HttpURLConnection;
-
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
 //  ---------------------   Code    ----------------------------
 public class Main {
 
-private static ThreadsCrawler myThreadsCrawler =new ThreadsCrawler();
 
-    public static void main(String[] args) {
+    private static ThreadsCrawler myThreadsCrawler =new ThreadsCrawler();
 
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+    public static void main(String[] args)
+    {
 
-        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
-        MongoCollection<org.bson.Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
-
-
-        int ThreadsNo = ReadThreadNumber();
 
 //        I return what you want :)
 //        getDocs();
@@ -70,13 +56,12 @@ private static ThreadsCrawler myThreadsCrawler =new ThreadsCrawler();
     }
 
 
-    }
+
+}
 
 class ThreadsCrawler {
-        private static MongoCollection<org.bson.Document> CrawlerCollection;
-    public ThreadsCrawler(MongoCollection<org.bson.Document> CrawlerCollection) {
+    public ThreadsCrawler() {
 
-        ThreadsCrawler.CrawlerCollection =CrawlerCollection;
         int ThreadsNum = ReadThreadNumber();
         System.out.println("Crawler: Threads start");
         run(ThreadsNum);
@@ -153,19 +138,16 @@ class Crawler implements Runnable {
     private final ArrayList<Document> docs = new ArrayList<>();
     private static final Object myLock = new Object();
 
-    private static MongoCollection<org.bson.Document> CrawlerCollection;
-    public Crawler(MongoCollection<org.bson.Document> CrawlerCollection) {
-        Crawler.CrawlerCollection =CrawlerCollection;
+    public Crawler() {
         System.out.println("Crawler: Start...");
 
         System.out.println("Crawler: Read seedLinks");
         ReadSeedLinks();
 
     }
-
-    private void ReadSeedLinks() {
+    private void ReadSeedLinks(){
         try {
-            File myObj = new File("D:\\CMP1Materials\\SecondYear\\SecondTerm\\APT\\Project\\Search Engine\\Search Engine\\src\\Crawler\\seedLinks.txt");
+            File myObj = new File("src/seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
@@ -185,10 +167,10 @@ class Crawler implements Runnable {
     }
     private void doWork(){
         try {
-            crawler();
+        crawler();
     }catch (Exception e){e.getStackTrace();}
     }
-
+    
     public ArrayList<Document> getDocs()
     {
         return docs;
@@ -211,7 +193,7 @@ class Crawler implements Runnable {
         {
             synchronized (myLock) {
                 while (links.isEmpty())
-                    myLock.wait();
+                         myLock.wait();
                 link=links.poll();
             }
 
@@ -250,17 +232,10 @@ class Crawler implements Runnable {
             Connection con = Jsoup.connect(link);
             Document doc = con.get();
 
-            if (con.response().statusCode() == 200) {
-                System.out.println("Thread " + Thread.currentThread().getId() + " | seedLink: " + link); // Delete
-                System.out.println("Title : " + doc.title()); // Delete
-
-                org.bson.Document d=new org.bson.Document("URL",link);
-                d.append("Document",doc);
-
-
-                if (CrawlerCollection.find(d).first() == null)
-                    CrawlerCollection.insertOne(d);
-
+            if(con.response().statusCode() == 200)
+            {
+                System.out.println("Thread "+Thread.currentThread().getId()+" | seedLink: " + link); // Delete
+                System.out.println("Title : "+doc.title());    // Delete
 
                 return  doc;
             }
@@ -360,8 +335,8 @@ class Crawler implements Runnable {
 
         synchronized (myLock){
         RobotsTxt.put(url.getHost(),rulesLines);
-        }
     }
+}
 
     //    Takes robotFile lines in ArrayList and crawlerUserAgent --> Return Disallowed rules
     private static ArrayList<String> praseRobotTxt(ArrayList<String> robotFile, String userAgent) {
