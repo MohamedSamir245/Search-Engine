@@ -122,7 +122,7 @@ public class Indexer {
 
         SnowballStemmer stemmer = new SnowballStemmer(ENGLISH);
 
-ArrayList<String>newWords=new ArrayList<>();
+        ArrayList<String>newWords=new ArrayList<>();
 
         for (String word : Words) {
             if (isNumber(word))

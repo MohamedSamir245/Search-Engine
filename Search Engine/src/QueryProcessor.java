@@ -39,33 +39,33 @@ public class QueryProcessor {
         FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
 
-//        while (true) {
-//            Document result = searchDB.find().first();
+        while (true) {
+            Document result = searchDB.find().first();
 //
-//            if (result != null) {
-//                String Query = (String) result.get("Query");
+            if (result != null) {
+                String Query = (String) result.get("Query");
 //
-//                searchDB.deleteMany(result);
+                searchDB.deleteMany(result);
 //
-//                System.out.println(Query);
+                System.out.println(Query);
 
 //
-                String Query="enter";
+//                String Query="enter";
                 ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
 
                 urls.forEach(System.out::println);
 
 
-//                Document r = new Document();
-//                r.append("Query",Query);
-//                r.append("URLs",urls);
+                Document r = new Document();
+                r.append("Query",Query);
+                r.append("URLs",urls);
 //
 //
-//                resultDB.insertOne(r);
-//
-//
-//            }
-//        }
+                resultDB.insertOne(r);
+
+
+            }
+        }
 
 
 //        Scanner scanner = new Scanner(System.in);
@@ -114,7 +114,7 @@ public class QueryProcessor {
         for (int i = 0; i < newWordsOnly.length + 1; i++) {
             if (i == newWordsOnly.length) {
                 if (Phrase.length() != 0) {
-                    finalWords[i] = (String) stemmer.stem(Phrase);
+                    finalWords[i] = Phrase;
                 } else finalWords[i] = "";
 //                    System.out.print(Phrase);
                 continue;
@@ -133,16 +133,20 @@ public class QueryProcessor {
 
         for (int i = 0; i < words.length - 1; i++) {
 
-//            Document search = new Document( words[i]);
+//            Document search = new Document(words[i]);
+
+
+
             ArrayList<Document> sub = (ArrayList<Document>)indexerdoc.get(words[i]);
             if(sub==null)
                 continue;
 
             ArrayList<String>websites=new ArrayList<>();
 
-            for(int j=0;j<sub.size();j++)
-            {
-                websites.add((String) sub.get(i).get("URL"));
+            System.out.println(sub.size());
+
+            for (Document document : sub) {
+                websites.add((String) document.get("URL"));
 
             }
 //            Document result = IndexerCollection.find(search).first();
@@ -157,6 +161,8 @@ public class QueryProcessor {
 
         if (!Objects.equals(words[words.length - 1], "")) {
             MongoCursor<Document> cursor = phraseSearchingdoc.iterator();
+
+            System.out.println(words[words.length-1]);
 
             try {
                 while (cursor.hasNext()) {

@@ -2,6 +2,17 @@
 
 // ----------------- Libraries -----------------------
 
+package Crawler;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+
 // *** Reading data from file ***
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
@@ -42,10 +53,22 @@ public class Main {
 
     public static void main(String[] args)
     {
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
 
+        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
+        MongoCollection<org.bson.Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
 
 //        I return what you want :)
-//        getDocs();
+
+        getDocs();
+        Document dd=getDocs().get(2);
+
+
+
+        org.bson.Document d=new org.bson.Document("URL",dd.baseUri());
+        d.append("BodyText",dd.body().text());
+
+        CrawlerCollection.insertOne(d);
 //        System.out.println(getDocs().get(20));
 
     }
@@ -147,7 +170,7 @@ class Crawler implements Runnable {
     }
     private void ReadSeedLinks(){
         try {
-            File myObj = new File("src/seedLinks.txt");
+            File myObj = new File("Search Engine\\src\\Crawler\\seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
