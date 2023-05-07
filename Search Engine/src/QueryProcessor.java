@@ -4,6 +4,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 import com.mongodb.MongoClient;
@@ -30,32 +31,41 @@ public class QueryProcessor {
         MongoCollection<Document> resultDB = MongoDB.getCollection("resultDB");
 
 
-        while (true) {
-            Document result = searchDB.find().first();
+//        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+//        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
+        MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
+        Document indexerdoc = IndexerCollection.find().first();
+        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
+        FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
-            if (result != null) {
-                String Query = (String) result.get("Query");
 
-                searchDB.deleteMany(result);
-
-                System.out.println(Query);
+//        while (true) {
+//            Document result = searchDB.find().first();
+//
+//            if (result != null) {
+//                String Query = (String) result.get("Query");
+//
+//                searchDB.deleteMany(result);
+//
+//                System.out.println(Query);
 
 //
-                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()))));
+                String Query="enter";
+                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
 
                 urls.forEach(System.out::println);
 
 
-                Document r = new Document();
-                r.append("Query",Query);
-                r.append("URLs",urls);
-
-
-                resultDB.insertOne(r);
-
-
-            }
-        }
+//                Document r = new Document();
+//                r.append("Query",Query);
+//                r.append("URLs",urls);
+//
+//
+//                resultDB.insertOne(r);
+//
+//
+//            }
+//        }
 
 
 //        Scanner scanner = new Scanner(System.in);
@@ -113,18 +123,10 @@ public class QueryProcessor {
 
         }
 
-        String[] finalUniqueWords = Arrays.stream(finalWords).distinct().toArray(String[]::new);
-
-        return finalUniqueWords;
+        return Arrays.stream(finalWords).distinct().toArray(String[]::new);
     }
 
-    static String[] getURLs(String[] words) {
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
-        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
-        MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
-        Document indexerdoc = IndexerCollection.find().first();
-        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
-        FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
+    static String[] getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
 
         ArrayList<String> links = new ArrayList<>();
 
@@ -132,27 +134,37 @@ public class QueryProcessor {
         for (int i = 0; i < words.length - 1; i++) {
 
 //            Document search = new Document( words[i]);
-            ArrayList<String> sub = (ArrayList<String>)indexerdoc.get(words[i]);
+            ArrayList<Document> sub = (ArrayList<Document>)indexerdoc.get(words[i]);
+            if(sub==null)
+                continue;
+
+            ArrayList<String>websites=new ArrayList<>();
+
+            for(int j=0;j<sub.size();j++)
+            {
+                websites.add((String) sub.get(i).get("URL"));
+
+            }
 //            Document result = IndexerCollection.find(search).first();
 
 //            if (result != null) {
 //                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
-                links.addAll(sub);
+                links.addAll(websites);
 
 //            }
 
         }
 
-        if (words[words.length - 1] != "") {
+        if (!Objects.equals(words[words.length - 1], "")) {
             MongoCursor<Document> cursor = phraseSearchingdoc.iterator();
 
             try {
                 while (cursor.hasNext()) {
                     Document doc = cursor.next();
-                    String html = (String) doc.get("html");
-                    String url = (String) doc.get("htmlLink");
+                    String html = (String) doc.get("PageBody");
+                    String url = (String) doc.get("PageLink");
 
-                    if (html.indexOf(words[words.length - 1]) != -1) {
+                    if (html.contains(words[words.length - 1])) {
                         links.add(url);
                     }
                 }
@@ -160,8 +172,7 @@ public class QueryProcessor {
                 cursor.close();
             }
         }
-        String[] finalLinks = links.stream().distinct().toArray(String[]::new);
-        return finalLinks;
+        return links.stream().distinct().toArray(String[]::new);
 
     }
 
