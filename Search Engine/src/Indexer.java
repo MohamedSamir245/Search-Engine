@@ -83,14 +83,14 @@ public class Indexer {
     }
 
     static ArrayList<URL> getURLsList() throws MalformedURLException {
-        //TODO get URLs from Database of any way
+        //TODO get URLs from Database or any way
 
 
         ArrayList<URL> urlArrayList = new ArrayList<>();
         urlArrayList.add(new URL("https://www.codeforces.com/"));
         urlArrayList.add(new URL("https://www.wikipedia.org/"));
         urlArrayList.add(new URL("https://www.tyrereviews.com/"));
-//        urlArrayList.add(new URL("https://www.kanbkam.com/eg/en/ir-sensor-line-tracking-5-channels-B091D57PSP"));
+        urlArrayList.add(new URL("https://www.kanbkam.com/eg/en/ir-sensor-line-tracking-5-channels-B091D57PSP"));
         return urlArrayList;
     }
 
@@ -102,11 +102,10 @@ public class Indexer {
         int responseCode = conn.getResponseCode();
         if(responseCode==HttpURLConnection.HTTP_OK)
         {
-            org.jsoup.nodes.Document doc = Jsoup.connect(url.toString()).get();
-            return doc;
+            return Jsoup.connect(url.toString()).get();
         }
         else {
-            System.out.println("Failed to get website info "+responseCode);
+            System.out.println("Failed to Get Website Info => Error Code = "+responseCode);
             return null;
         }
     }
@@ -130,7 +129,7 @@ ArrayList<String>newWords=new ArrayList<>();
                 continue;
             if (word != null && !word.equals("")) {
 //                    System.out.println(Words[i]);
-                newWords.add((String) stemmer.stem(word.toString().toLowerCase()));
+                newWords.add((String) stemmer.stem(word.toLowerCase()));
             }
         }
 
@@ -166,12 +165,17 @@ ArrayList<String>newWords=new ArrayList<>();
 
             org.jsoup.nodes.Document PageDoc= getWebsiteInfo(SamirURL);
 
-            if(PageDoc==null)
+            if(PageDoc==null) {
+                System.out.println("Can't index: "+ SamirURL);
                 continue;
+            }
 
 
             String bodyText = PageDoc.body().text();
             String PageTitle=PageDoc.title();
+
+
+            System.out.println("Working on: "+PageTitle);
 
 //          TODO: make the document out of for loop
             String htmlWholeBody = bodyText;
@@ -227,7 +231,7 @@ ArrayList<String>newWords=new ArrayList<>();
 
                         if (result.get(modifiedWord).getClass() == ArrayList.class) {
                             docList = (ArrayList<Document>) result.get(modifiedWord);
-                            System.out.println(docList.size());
+//                            System.out.println(docList.size());
                             boolean found = false;
                             for (Document document : docList) {
 //                                System.out.println(docList.get(j).get("URL"));

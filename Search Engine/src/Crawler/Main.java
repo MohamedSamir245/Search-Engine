@@ -32,17 +32,35 @@ import java.util.regex.PatternSyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+
+import java.net.HttpURLConnection;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
 //  ---------------------   Code    ----------------------------
 public class Main {
 
+
     public static void main(String[] args) {
+
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+
+        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
+        MongoCollection<org.bson.Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
+
         int ThreadsNo = ReadThreadNumber();
 
         // Threads Crawler
         ThreadsCrawler myThreadsCrawler = new ThreadsCrawler(ThreadsNo);
 
         // Next line return the docs
-        // myThreadsCrawler.getDocs()
+        myThreadsCrawler.getDocs();
         // System.out.println(myThreadsCrawler.getDocs().get(5));
 
     }
@@ -176,7 +194,7 @@ class Crawler implements Runnable {
     // =========================== Crawling ======================
     // =================================================================
 
-    private void crawler() throws Exception {
+    private void crawler(MongoCollection<org.bson.Document> CrawlerCollection) throws Exception {
         int MAX_CRAWLED = 60; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
         String link;
         while (links.isEmpty()) {
@@ -192,11 +210,11 @@ class Crawler implements Runnable {
             }
 
             if (link != null && !visited.contains(toCompactString(link)))
-                crawl(link);
+                crawl(link,CrawlerCollection);
         }
     }
 
-    private void crawl(String link) throws Exception {
+    private void crawl(String link,MongoCollection<org.bson.Document> CrawlerCollection) throws Exception {
         // check if disallowed link in Robot.txt
         if (!isAllowedLink(link)) {
             // it is disallowed then return
@@ -204,7 +222,7 @@ class Crawler implements Runnable {
             return;
         }
         // it is allowed then fetch it
-        Document doc = request(link);
+        Document doc = request(link,CrawlerCollection);
 
         if (doc != null) {
             System.out.println("*** " + docs.size() + " ***");
@@ -221,7 +239,7 @@ class Crawler implements Runnable {
             System.out.println("Not Connected");
     }
 
-    private Document request(String link) {
+    private Document request(String link,MongoCollection<org.bson.Document> CrawlerCollection) {
         try {
             Connection con = Jsoup.connect(link);
             Document doc = con.get();
@@ -229,6 +247,14 @@ class Crawler implements Runnable {
             if (con.response().statusCode() == 200) {
                 System.out.println("Thread " + Thread.currentThread().getId() + " | seedLink: " + link); // Delete
                 System.out.println("Title : " + doc.title()); // Delete
+
+                org.bson.Document d=new org.bson.Document("URL",link);
+                d.append("Document",doc);
+
+
+                if (CrawlerCollection.find(d).first() == null)
+                    CrawlerCollection.insertOne(d);
+
 
                 return doc;
             }
