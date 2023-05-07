@@ -60,14 +60,8 @@ public class Indexer {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
-
-        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
-        MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
-        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
-
-
+    static ArrayList<String>  getStopWords()
+    {
         ArrayList<String> stopwordsList = new ArrayList<>();
 
         try {
@@ -79,10 +73,17 @@ public class Indexer {
 //            System.out.println(data);
             }
             myReader.close();
+
+            return stopwordsList;
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+            return null;
         }
+    }
+
+    static ArrayList<URL> getURLsList() throws MalformedURLException {
+        //TODO get URLs from Database of any way
 
 
         ArrayList<URL> urlArrayList = new ArrayList<>();
@@ -90,30 +91,29 @@ public class Indexer {
         urlArrayList.add(new URL("https://www.wikipedia.org/"));
         urlArrayList.add(new URL("https://www.tyrereviews.com/"));
 //        urlArrayList.add(new URL("https://www.kanbkam.com/eg/en/ir-sensor-line-tracking-5-channels-B091D57PSP"));
+        return urlArrayList;
+    }
 
-        SnowballStemmer stemmer = new SnowballStemmer(ENGLISH);
+    static org.jsoup.nodes.Document getWebsiteInfo(URL url) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
+        conn.setRequestMethod("GET");
 
-        for (URL SamirURL : urlArrayList) {
+        int responseCode = conn.getResponseCode();
+        if(responseCode==HttpURLConnection.HTTP_OK)
+        {
+            org.jsoup.nodes.Document doc = Jsoup.connect(url.toString()).get();
+            return doc;
+        }
+        else {
+            System.out.println("Failed to get website info "+responseCode);
+            return null;
+        }
+    }
 
-            HttpURLConnection conn = (HttpURLConnection) SamirURL.openConnection();
-
-            conn.setRequestMethod("GET");
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
-            }
-            reader.close();
-
-            String bodyText = Jsoup.parse(content.toString()).text();
-
-            bodyText.replaceAll("\\d+", "");
-
-            String[] Words = bodyText.split("\\W+");
-
+    static ArrayList<String> getStemmedWords(String body)
+    {
+        String[] Words = body.split("\\W+");
 
 //            bodyText = bodyText.replaceAll(",|\\.|!|\\?|:|;|\\)|\\(|\\[|]|\\*&\\^%\\$|\"|\'|→|\\||#", "");
 //            bodyText = bodyText.replaceAll("\\p{C}", "");
@@ -121,93 +121,118 @@ public class Indexer {
 //            bodyText = bodyText.replaceAll("©|»|-|\\{|}|=", "");
 
 
-            //TODO: make the document out of for loop
+        SnowballStemmer stemmer = new SnowballStemmer(ENGLISH);
+
+ArrayList<String>newWords=new ArrayList<>();
+
+        for (String word : Words) {
+            if (isNumber(word))
+                continue;
+            if (word != null && !word.equals("")) {
+//                    System.out.println(Words[i]);
+                newWords.add((String) stemmer.stem(word.toString().toLowerCase()));
+            }
+        }
+
+        return newWords;
+
+    }
+
+    static ArrayList<String> removeStopWords(ArrayList<String> words,ArrayList<String>stopWords)
+    {
+        ArrayList<String> modifiedWords = new ArrayList<>();
+
+        for (String word : words) {
+            if (!stopWords.contains(word)) {
+                modifiedWords.add(word);
+            }
+        }
+        return modifiedWords;
+    }
+    public static void main(String[] args) throws IOException {
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+
+        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
+        MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
+        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
+
+        ArrayList<String> stopwordsList = getStopWords();
+        ArrayList<URL> urlArrayList = getURLsList();
+
+
+
+        for (URL SamirURL : urlArrayList) {
+
+
+            org.jsoup.nodes.Document PageDoc= getWebsiteInfo(SamirURL);
+
+            if(PageDoc==null)
+                continue;
+
+
+            String bodyText = PageDoc.body().text();
+            String PageTitle=PageDoc.title();
+
+//          TODO: make the document out of for loop
             String htmlWholeBody = bodyText;
             Document htmlDoc = new Document();
-            htmlDoc.append("html", htmlWholeBody);
-            htmlDoc.append("htmlLink", SamirURL.toString());
-
+            htmlDoc.append("PageBody", htmlWholeBody);
+            htmlDoc.append("PageLink", SamirURL.toString());
+            htmlDoc.append("PageTitle",PageTitle);
 
             if (phraseSearchingCollection.find(htmlDoc).first() == null)
                 phraseSearchingCollection.insertOne(htmlDoc);
 
+            bodyText =bodyText.replaceAll("\\d+", "");
 
-            for (int i = 0; i < Words.length; i++) {
-                if (isNumber(Words[i]))
-                    continue;
-                if (Words[i] != "null") {
-//                    System.out.println(Words[i]);
-                    Words[i] = (String) stemmer.stem(Words[i].toString().toLowerCase());
-                }
+            ArrayList<String>Words=getStemmedWords(bodyText);
+
+            var freq = Words.stream().collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+
+            var un = Words.stream().distinct().toArray();
+            ArrayList<String>uniqeWords=new ArrayList<>();
+            for (Object o : un) {
+                uniqeWords.add(o.toString());
             }
 
-//            long[] freqNum = new long[bodyText.length()];
-
-            //finding freq of all word in a doc
-            var freq = Arrays.stream(Words).collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
-
-//            for(int i=0;i<Words.length;i++)
-//            {
-//                System.out.println(freq.get(Words[i]));
-//            }
-
-            var uniqeWords = Arrays.stream(Words).distinct().toArray();
-
-
-//            System.out.println(uniqeWords[0].toString());
-//            for(int i=0;i<uniqeWords.length;i++)
-//            {
-//                uniqeWords[i]=stemmer.stem(uniqeWords[i].toString());
-//            }
-
-            ArrayList<String> modifiedWords = new ArrayList<>();
-//        ArrayList<Integer>Freq=new ArrayList<>();
-
-            for (int i = 0; i < uniqeWords.length; i++) {
-                if (!stopwordsList.contains(uniqeWords[i])) {
-                    modifiedWords.add(uniqeWords[i].toString());
-                }
-            }
+            ArrayList<String> modifiedWords = removeStopWords(uniqeWords,stopwordsList);
 
             Document result = IndexerCollection.find().first();
             if (result == null) {
                 Document newDoc = new Document();
 
-                for (int i = 0; i < modifiedWords.size(); i++) {
+                for (String modifiedWord : modifiedWords) {
                     Document valDoc = new Document();
                     ArrayList<Document> val = new ArrayList<>();
 
 
                     valDoc.append("URL", SamirURL.toString());
-                    valDoc.append("Freq", freq.get(modifiedWords.get(i)));
+                    valDoc.append("Freq", freq.get(modifiedWord));
+                    valDoc.append("Title",PageTitle);
 
                     val.add(valDoc);
 
-                    newDoc.append(modifiedWords.get(i), val);
+                    newDoc.append(modifiedWord, val);
                 }
 
                 IndexerCollection.insertOne(newDoc);
 
-                continue;
             } else {
 
                 Document oldDoc = result;
-                for (int i = 0; i < modifiedWords.size(); i++) {
+                for (String modifiedWord : modifiedWords) {
 //                    ArrayList<String> newurls = new ArrayList<>();
-                    ArrayList<Document>docList;
-                    if (result.get(modifiedWords.get(i)) != null) {
+                    ArrayList<Document> docList;
+                    if (result.get(modifiedWord) != null) {
 
-                        if (result.get(modifiedWords.get(i)).getClass() == ArrayList.class)
-                        {
-                            docList=(ArrayList<Document>) result.get(modifiedWords.get(i));
+                        if (result.get(modifiedWord).getClass() == ArrayList.class) {
+                            docList = (ArrayList<Document>) result.get(modifiedWord);
                             System.out.println(docList.size());
-                            Boolean found=false;
-                            for(int j=0;j<docList.size();j++)
-                            {
+                            boolean found = false;
+                            for (Document document : docList) {
 //                                System.out.println(docList.get(j).get("URL"));
-                                if(docList.get(j).get("URL").toString()==SamirURL.toString())
-                                {
-                                    found=true;
+                                if (Objects.equals(document.get("URL").toString(), SamirURL.toString())) {
+                                    found = true;
                                     break;
                                 }
 
@@ -215,12 +240,13 @@ public class Indexer {
 
 
                             }
-                            if(!found) {
+                            if (!found) {
                                 Document n = new Document();
                                 n.append("URL", SamirURL.toString());
-                                n.append("Freq", freq.get(modifiedWords.get(i)));
+                                n.append("Freq", freq.get(modifiedWord));
+                                n.append("Title",PageTitle);
                                 docList.add(n);
-                                result.replace(modifiedWords.get(i),docList);
+                                result.replace(modifiedWord, docList);
 
                             }
                         }
@@ -231,11 +257,12 @@ public class Indexer {
 
 
                         valDoc.append("URL", SamirURL.toString());
-                        valDoc.append("Freq", freq.get(modifiedWords.get(i)));
+                        valDoc.append("Freq", freq.get(modifiedWord));
+                        valDoc.append("Title",PageTitle);
 
                         val.add(valDoc);
 
-                        result.append(modifiedWords.get(i), val);
+                        result.append(modifiedWord, val);
 
                     }
                 }
@@ -248,6 +275,5 @@ public class Indexer {
 
         }
     }
-
 
 }
