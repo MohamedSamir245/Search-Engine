@@ -40,6 +40,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed }) => {
           {viewed.length % 10 === 0 ? viewed.length / 10 : Math.trunc(viewed.length / 10) + 1}
         </b>
       </div>
+      <br/>
       <div className="programmers">
         <ul>
           <li>Ismail Shaheen</li>

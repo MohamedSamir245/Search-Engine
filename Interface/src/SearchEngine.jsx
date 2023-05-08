@@ -1,11 +1,15 @@
 import "./SearchEngine.css";
 import Axios from "axios";
-import api from './api/axiosConfig'
+// import api from './api/axiosConfig'
 import searchimage from "./images/search.png";
 
 const SearchEngine = (props) => {
 //   const https = require("https");
-  const cheerio = require("cheerio");
+  // const cheerio = require("cheerio");
+  // const http = require("http");
+  // const { JSDOM } = require("jsdom");
+
+
 
 
   // const handleSearchButton2 = async () => {
@@ -21,18 +25,39 @@ const SearchEngine = (props) => {
     })
       .then((res) => {
         // console.log("here");
-        console.log(res.data.links);
+        // console.log(res.data.links);
+        // console.log(res.data)
         if (res.data.links) {
           let alldics = [];
           for (let i = 0; i < res.data.links.length; i++) {
-            // const url = res.data.links[i];
+            const url = res.data.links[i];
+            const title = res.data.titles[i];
+            const discription = res.data.descriptions[i];
+            // console.log(discription)
 
-            // let title;
+            // http
+            //   .get(url, (response) => {
+            //     let html = "";
+
+            //     response.on("data", (chunk) => {
+            //       html += chunk;
+            //     });
+
+            //     response.on("end", () => {
+            //       const dom = new JSDOM(html);
+            //       const pageTitle = dom.window.document.title;
+            //       console.log(pageTitle);
+            //       title=pageTitle;
+            //     });
+            //   })
+            //   .on("error", (error) => {
+            //     console.error(error);
+            //   });
 
             let dic = {
-              pageName: "title",
-              pageLink: res.data.links[i],
-              pageParagraph: "jklfads;;klafjdsafjkl;ds",
+              pageName: title,
+              pageLink: url,
+              pageParagraph: discription,
             };
             alldics.push(dic);
           }

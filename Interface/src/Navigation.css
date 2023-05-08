@@ -6,8 +6,8 @@
 }
 
 .programmers{
-    background-color: black;
-    color:rgb(3, 87, 140)
+    background-color: rgb(255, 255, 255);
+    color:rgb(2, 71, 114)
 
 }
 
@@ -17,7 +17,7 @@ li{
 }
 
 .btn{
-    width:10%;
+    width:50px;
     display:inline-block;
     height:30px;
     border:0px;
@@ -37,16 +37,21 @@ li{
 }
 
 .locked{
-    background-color:black;
-    color:gray;
+    background-color:rgb(255, 255, 255);
+    color:rgb(0, 0, 0);
+}
+.locked:hover{
+    background-color:rgb(228, 228, 228);
+
+
 }
 
 .num{
-    color:white;
+    color:rgb(0, 0, 0);
     display:inline-block;
 }
 
 .total{
     text-align:center;
-    color:yellow;
+    color:rgb(0, 0, 0);
 }

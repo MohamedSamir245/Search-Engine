@@ -15,6 +15,7 @@ function App() {
         pageName={pageName}
         pageLink={pageLink}
         pageParagraph={pageParagraph}
+        query={querySearch}
         key={pageName}
       />
     );

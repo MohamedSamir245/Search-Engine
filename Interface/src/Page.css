@@ -1,10 +1,27 @@
 .container{
-    background-color:gray;
+    /* background-color:gray; */
     margin:3px;
     border :0px;
     padding:2px;
+    width: 80%;
+    box-shadow: 4px 3px 8px 1px #bdbdbd;
+    margin-left: 10%;
+    margin-top: 3%;
+    margin-bottom: 3%;
+
 }
 
 .paragraph{
-    color:black;
+    color:rgba(56, 56, 56, 0.801);
+    margin-left: 2%;
+}
+.linkSpan{
+    color: rgb(2, 73, 2);
+    margin-left: 2%;
+
+}
+
+.links{
+    margin-left: 2%;
+margin-top: 2%;
 }

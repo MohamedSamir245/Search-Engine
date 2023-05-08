@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Scanner;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -15,13 +14,16 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
 
-//import opennlp.tools.stemmer.PorterStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import org.bson.Document;
 
+import org.jsoup.Jsoup;
+//import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
 
 public class QueryProcessor {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         //TODO take the query and assign it to (Query) variable
 
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
@@ -39,6 +41,8 @@ public class QueryProcessor {
         FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
 
+
+
         while (true) {
             Document result = searchDB.find().first();
 //
@@ -51,14 +55,29 @@ public class QueryProcessor {
 
 //
 //                String Query="enter";
-                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
+                Document res=getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc);
+//                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
+                ArrayList<String>urls=new ArrayList<>(Arrays.asList((String[])res.get("Links"))) ;
+                ArrayList<String>titles=new ArrayList<>(Arrays.asList((String[]) res.get("Titles")));
+                ArrayList<String>descriptions=new ArrayList<>();
+                for (String url : urls) {
+                    String snippet = tstparagraph.generateSnippet(url, Query);
+
+                    descriptions.add(snippet);
+                }
 
                 urls.forEach(System.out::println);
+                titles.forEach(System.out::println);
+                descriptions.forEach(System.out::println);
+
 
 
                 Document r = new Document();
                 r.append("Query",Query);
                 r.append("URLs",urls);
+                r.append("Titles",titles);
+                r.append("Descriptions",descriptions);
+//                r.append("")
 //
 //
                 resultDB.insertOne(r);
@@ -126,9 +145,10 @@ public class QueryProcessor {
         return Arrays.stream(finalWords).distinct().toArray(String[]::new);
     }
 
-    static String[] getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
+    static Document getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
 
         ArrayList<String> links = new ArrayList<>();
+        ArrayList<String> titles=new ArrayList<>();
 
 
         for (int i = 0; i < words.length - 1; i++) {
@@ -143,10 +163,12 @@ public class QueryProcessor {
 
             ArrayList<String>websites=new ArrayList<>();
 
+
             System.out.println(sub.size());
 
             for (Document document : sub) {
                 websites.add((String) document.get("URL"));
+                titles.add((String) document.get("Title"));
 
             }
 //            Document result = IndexerCollection.find(search).first();
@@ -169,7 +191,9 @@ public class QueryProcessor {
                     Document doc = cursor.next();
                     String html = (String) doc.get("PageBody");
                     String url = (String) doc.get("PageLink");
+                    String title=(String) doc.get("PageTitle");
 
+    titles.add(title);
                     if (html.contains(words[words.length - 1])) {
                         links.add(url);
                     }
@@ -178,8 +202,25 @@ public class QueryProcessor {
                 cursor.close();
             }
         }
-        return links.stream().distinct().toArray(String[]::new);
 
+        Document res=new Document("Links",links.stream().distinct().toArray(String[]::new));
+        res.append("Titles",titles.stream().distinct().toArray(String[]::new));
+        return res;
+
+    }
+
+    public static String generateSnippet(String url, String searchTerm) throws Exception {
+        org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
+        Elements elements = doc.getElementsContainingOwnText(searchTerm);
+        String snippet = "";
+        for (org.jsoup.nodes.Element element : elements) {
+            String text = element.text();
+            if (text.contains(searchTerm)) {
+                snippet = text;
+                break;
+            }
+        }
+        return snippet;
     }
 
 }

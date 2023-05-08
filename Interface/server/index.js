@@ -32,10 +32,10 @@ client
 //   .finally(() => client.close());
 
 const db = client.db(dbName);
-const IndexerCollection = db.collection("IndexerDB");
+// const IndexerCollection = db.collection("IndexerDB");
 const searchDB = db.collection("searchDB");
 const resultDB = db.collection("resultDB");
-const PhraseCollection = db.collection("phraseSearchingDB");
+// const PhraseCollection = db.collection("phraseSearchingDB");
 
 app.post("/search", (req, res) => {
   const query = req.body.query;
@@ -60,7 +60,12 @@ app.post("/search", (req, res) => {
         let doc = resultDB.find({ Query: query });
         doc.toArray().then((val) => {
           if (val.length !== 0) {
-            res.send({ links: val.at(0).URLs });
+
+            res.send({
+              links: val.at(0).URLs,
+              titles: val.at(0).Titles,
+              descriptions: val.at(0).Descriptions,
+            });
             resultDB.deleteMany(val.at(0));
           } else {
             console.log("Not Found");
