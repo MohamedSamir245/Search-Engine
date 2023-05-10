@@ -21,6 +21,8 @@ import org.jsoup.Jsoup;
 //import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import javax.print.Doc;
+
 
 public class QueryProcessor {
     public static void main(String[] args) throws Exception {
@@ -41,6 +43,13 @@ public class QueryProcessor {
         FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
 
+        //for suggestion mechanism
+        MongoCollection<Document> queryCollection = MongoDB.getCollection("queryCollection");
+
+
+
+
+
 
 
         while (true) {
@@ -52,6 +61,30 @@ public class QueryProcessor {
                 searchDB.deleteMany(result);
 //
                 System.out.println(Query);
+
+                Document queriesDoc=queryCollection.find().first();
+                if(queriesDoc==null)
+                {
+                    Document tmpd=new Document(Query,1);
+                    queryCollection.insertOne(tmpd);
+                }
+                else if(queriesDoc.get(Query)==null)
+                {
+                    queriesDoc.append(Query,1);
+
+                    Document filter = new Document("_id", queriesDoc.get("_id"));
+                    queryCollection.replaceOne(filter, queriesDoc);
+                }
+                else
+                {
+
+                    int oldval=(int)queriesDoc.get(Query);
+                    queriesDoc.replace(Query,oldval+1);
+
+                    Document filter = new Document("_id", queriesDoc.get("_id"));
+                    queryCollection.replaceOne(filter, queriesDoc);
+
+                }
 
 //
 //                String Query="enter";

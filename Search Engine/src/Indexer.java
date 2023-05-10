@@ -8,10 +8,7 @@ import com.mongodb.MongoClientURI;
 
 import java.net.HttpURLConnection;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import opennlp.tools.stemmer.PorterStemmer;
 
 import com.mongodb.client.model.Filters;
@@ -33,6 +30,9 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Array;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -82,17 +82,61 @@ public class Indexer {
         }
     }
 
-    static ArrayList<URL> getURLsList() throws MalformedURLException {
-        //TODO get URLs from Database or any way
+    static ArrayList<Document> getBodiessList(MongoCollection<Document> collection) throws MalformedURLException {
 
+        int j=0;
 
+        System.out.println("Getting Data From Database ..");
         ArrayList<URL> urlArrayList = new ArrayList<>();
+
+        ArrayList<Document> List = new ArrayList<>();
+
+
+        FindIterable<Document> collectionindexer=collection.find();
+        MongoCursor<Document> cursor = collectionindexer.iterator();
+
+
+        try {
+            while (cursor.hasNext()) {
+
+                System.out.println("Collecting URL Number "+j++);
+                Document doc = cursor.next();
+
+                Document d=new Document();
+                String Body =(String)doc.get("BodyText");
+                String url =(String)doc.get("URL");
+
+
+                d.append("Body",Body);
+                d.append("Title", doc.get("Title"));
+
+                d.append("URL",url);
+
+
+
+
+
+                List.add(d);
+
+
+            }
+        } finally {
+            cursor.close();
+        }
+
+
+
+
+
         urlArrayList.add(new URL("https://www.codeforces.com/"));
         urlArrayList.add(new URL("https://www.wikipedia.org/"));
         urlArrayList.add(new URL("https://www.tyrereviews.com/"));
         urlArrayList.add(new URL("https://www.kanbkam.com/eg/en/ir-sensor-line-tracking-5-channels-B091D57PSP"));
-        return urlArrayList;
-    }
+        return List;
+
+
+}
+
 
     static org.jsoup.nodes.Document getWebsiteInfo(URL url) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -154,34 +198,76 @@ public class Indexer {
         MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
         MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
         MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
+        MongoCollection<Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
+        MongoCollection<Document> IndexerProgessCollection = MongoDB.getCollection("IndexerProgessCollection");
+
+
 
         ArrayList<String> stopwordsList = getStopWords();
-        ArrayList<URL> urlArrayList = getURLsList();
+//        ArrayList<URL> urlArrayList = getURLsList(CrawlerCollection);
+
+        ArrayList<Document> List=getBodiessList(CrawlerCollection);
+
+//        ArrayList<String> BodiesList = getBodiessList(CrawlerCollection);
+
+//        BodiesList.forEach(System.out::println);
+        int progressCounter=0;
+
+        LocalDate Today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String TodayFormatted = Today.format(formatter);
+
+
+        for (Document d : List) {
 
 
 
-        for (URL SamirURL : urlArrayList) {
 
 
-            org.jsoup.nodes.Document PageDoc= getWebsiteInfo(SamirURL);
+            String bodyText = (String) d.get("Body");
+            String PageTitle=(String) d.get("Title");
+            String url=(String) d.get("URL");
+
+            URL u=new URL(url);
+
+            org.jsoup.nodes.Document PageDoc= getWebsiteInfo(u);
 
             if(PageDoc==null) {
-                System.out.println("Can't index: "+ SamirURL);
+                System.out.println("Can't index: "+ u);
                 continue;
             }
 
+            System.out.println(progressCounter++ +". Working on: "+PageTitle);
 
-            String bodyText = PageDoc.body().text();
-            String PageTitle=PageDoc.title();
+            Document doc=IndexerProgessCollection.find(new Document("URL",url)).first();
+
+            int reindexingFlag=0;
+            if(doc!=null)
+            {
+                String formattedDate=(String) doc.get("Date");
+                LocalDate date1 = LocalDate.parse(formattedDate, formatter);
+
+                long daysBetween = ChronoUnit.DAYS.between(date1,Today);
+
+                if(daysBetween<=3) {
+                    System.out.println("Already Indexed From Less Than 3 Days");
+                    continue;
+                }
+                reindexingFlag=1;
+            }
 
 
-            System.out.println("Working on: "+PageTitle);
 
-//          TODO: make the document out of for loop
-            String htmlWholeBody = bodyText;
+
+
+
+
+
+
+//            String htmlWholeBody = bodyText;
             Document htmlDoc = new Document();
-            htmlDoc.append("PageBody", htmlWholeBody);
-            htmlDoc.append("PageLink", SamirURL.toString());
+            htmlDoc.append("PageBody", bodyText);
+            htmlDoc.append("PageLink", url);
             htmlDoc.append("PageTitle",PageTitle);
 
             if (phraseSearchingCollection.find(htmlDoc).first() == null)
@@ -210,7 +296,7 @@ public class Indexer {
                     ArrayList<Document> val = new ArrayList<>();
 
 
-                    valDoc.append("URL", SamirURL.toString());
+                    valDoc.append("URL", url);
                     valDoc.append("Freq", freq.get(modifiedWord));
                     valDoc.append("Title",PageTitle);
 
@@ -235,7 +321,7 @@ public class Indexer {
                             boolean found = false;
                             for (Document document : docList) {
 //                                System.out.println(docList.get(j).get("URL"));
-                                if (Objects.equals(document.get("URL").toString(), SamirURL.toString())) {
+                                if (Objects.equals(document.get("URL").toString(), url)) {
                                     found = true;
                                     break;
                                 }
@@ -246,7 +332,7 @@ public class Indexer {
                             }
                             if (!found) {
                                 Document n = new Document();
-                                n.append("URL", SamirURL.toString());
+                                n.append("URL", url);
                                 n.append("Freq", freq.get(modifiedWord));
                                 n.append("Title",PageTitle);
                                 docList.add(n);
@@ -260,7 +346,7 @@ public class Indexer {
                         ArrayList<Document> val = new ArrayList<>();
 
 
-                        valDoc.append("URL", SamirURL.toString());
+                        valDoc.append("URL", url);
                         valDoc.append("Freq", freq.get(modifiedWord));
                         valDoc.append("Title",PageTitle);
 
@@ -276,6 +362,28 @@ public class Indexer {
                 Document filter = new Document("_id", result.get("_id"));
                 IndexerCollection.replaceOne(filter, result);
             }
+
+            Document progressDoc=new Document("URL",url.toString());
+            progressDoc.append("Date",TodayFormatted);
+
+            if(reindexingFlag==0)
+            {
+
+
+                IndexerProgessCollection.insertOne(progressDoc);
+            }
+            else
+            {
+
+                Document e=IndexerProgessCollection.find(new Document("URL",url.toString())).first();
+                Document filter = new Document("_id", e.get("_id"));
+
+                IndexerProgessCollection.replaceOne(filter,progressDoc);
+
+                System.out.println("Updated Date");
+            }
+
+
 
         }
     }

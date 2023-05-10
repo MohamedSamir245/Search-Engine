@@ -29,6 +29,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 // HTTP
 import java.net.HttpURLConnection;
 
@@ -60,15 +61,45 @@ public class Main {
 
 //        I return what you want :)
 
-        getDocs();
-        Document dd=getDocs().get(2);
+        ArrayList<Document> docsArray=getDocs();
+
+        for(int i=0;i<docsArray.size();i++)
+        {
+            Document dd=getDocs().get(i);
+            org.bson.Document d=new org.bson.Document("URL",dd.baseUri());
+            d.append("BodyText",dd.body().text());
+            d.append("State","Done");
+            d.append("Title",dd.title());
+
+//            Elements h1Elements = dd.getElementsByTag("h1");
+//            Elements h2Elements = dd.getElementsByTag("h2");
+//            Elements h3Elements = dd.getElementsByTag("h3");
+//            Elements h4Elements = dd.getElementsByTag("h4");
+//            Elements h5Elements = dd.getElementsByTag("h5");
+//            Elements h6Elements = dd.getElementsByTag("h6");
+
+
+//
+//
+//
+//
+//            for(int j=0;j< h1Elements.size();j++)
+//            {
+//               Element element= h1Elements.get(j);
+//
+//               element.text();
+//            }
 
 
 
-        org.bson.Document d=new org.bson.Document("URL",dd.baseUri());
-        d.append("BodyText",dd.body().text());
+            if(CrawlerCollection.find(d).first()==null)
+                CrawlerCollection.insertOne(d);
 
-        CrawlerCollection.insertOne(d);
+        }
+
+
+
+
 //        System.out.println(getDocs().get(20));
 
     }
@@ -77,6 +108,8 @@ public class Main {
     {
         return myThreadsCrawler.getDocs();
     }
+
+
 
 
 
