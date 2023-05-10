@@ -38,6 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import com.google.gson.*;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import javax.print.Doc;
@@ -144,6 +145,7 @@ public class Indexer {
         conn.setRequestMethod("GET");
 
         int responseCode = conn.getResponseCode();
+        try{
         if(responseCode==HttpURLConnection.HTTP_OK)
         {
             return Jsoup.connect(url.toString()).get();
@@ -151,6 +153,10 @@ public class Indexer {
         else {
             System.out.println("Failed to Get Website Info => Error Code = "+responseCode);
             return null;
+        }}catch (Exception e)
+        {
+            return null;
+
         }
     }
 
@@ -224,7 +230,7 @@ public class Indexer {
 
 
 
-            String bodyText = (String) d.get("Body");
+            String bodyTextt = (String) d.get("Body");
             String PageTitle=(String) d.get("Title");
             String url=(String) d.get("URL");
 
@@ -232,14 +238,17 @@ public class Indexer {
 
             org.jsoup.nodes.Document PageDoc= getWebsiteInfo(u);
 
+
             if(PageDoc==null) {
                 System.out.println("Can't index: "+ u);
                 continue;
             }
 
+
             System.out.println(progressCounter++ +". Working on: "+PageTitle);
 
             Document doc=IndexerProgessCollection.find(new Document("URL",url)).first();
+
 
             int reindexingFlag=0;
             if(doc!=null)
@@ -256,36 +265,74 @@ public class Indexer {
                 reindexingFlag=1;
             }
 
+            Element body=PageDoc.body();
+
+
+            Elements hTags=body.select("h1, h2, h3, h4, h5, h6");
+            Elements pTags=body.select("p");
+
+            hTags.remove();
+            pTags.remove();
+
+            String hText=hTags.text();
+            String pText=pTags.text();
+            String bodyText=body.text();
+
+            bodyText =bodyText.replaceAll("\\d+", "");
+            hText =hText.replaceAll("\\d+", "");
+            pText =pText.replaceAll("\\d+", "");
 
 
 
-
-
-
-
-
-//            String htmlWholeBody = bodyText;
             Document htmlDoc = new Document();
-            htmlDoc.append("PageBody", bodyText);
+            htmlDoc.append("PageBody", bodyTextt);
             htmlDoc.append("PageLink", url);
             htmlDoc.append("PageTitle",PageTitle);
 
             if (phraseSearchingCollection.find(htmlDoc).first() == null)
                 phraseSearchingCollection.insertOne(htmlDoc);
 
-            bodyText =bodyText.replaceAll("\\d+", "");
 
-            ArrayList<String>Words=getStemmedWords(bodyText);
+            ArrayList<String>bodyWords=getStemmedWords(bodyText);
+            ArrayList<String>htagsWords=getStemmedWords(hText);
+            ArrayList<String>ptagsWords=getStemmedWords(pText);
 
-            var freq = Words.stream().collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
 
-            var un = Words.stream().distinct().toArray();
+
+            var freq = bodyWords.stream().collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+            var hfreq = htagsWords.stream().collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+            var pfreq = ptagsWords.stream().collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+
+            var un = bodyWords.stream().distinct().toArray();
+            var hun = htagsWords.stream().distinct().toArray();
+            var pun = ptagsWords.stream().distinct().toArray();
+
+
             ArrayList<String>uniqeWords=new ArrayList<>();
+            ArrayList<String>huniqeWords=new ArrayList<>();
+            ArrayList<String>puniqeWords=new ArrayList<>();
+
+
             for (Object o : un) {
                 uniqeWords.add(o.toString());
             }
 
+            for (Object o : hun) {
+                huniqeWords.add(o.toString());
+            }
+
+            for (Object o : pun) {
+                puniqeWords.add(o.toString());
+            }
+
             ArrayList<String> modifiedWords = removeStopWords(uniqeWords,stopwordsList);
+            ArrayList<String> hmodifiedWords = removeStopWords(huniqeWords,stopwordsList);
+            ArrayList<String> pmodifiedWords = removeStopWords(puniqeWords,stopwordsList);
+
+            System.out.println("Size of Plain Text = "+modifiedWords.size());
+            System.out.println("Size of H Tags = "+hmodifiedWords.size());
+            System.out.println("Size of P Tags = "+pmodifiedWords.size());
+
 
             Document result = IndexerCollection.find().first();
             if (result == null) {
@@ -299,10 +346,42 @@ public class Indexer {
                     valDoc.append("URL", url);
                     valDoc.append("Freq", freq.get(modifiedWord));
                     valDoc.append("Title",PageTitle);
+                    valDoc.append("Importance","PlainText");
 
                     val.add(valDoc);
 
                     newDoc.append(modifiedWord, val);
+                }
+
+                for (String hmodifiedWord : hmodifiedWords) {
+                    Document valDoc = new Document();
+                    ArrayList<Document> val = new ArrayList<>();
+
+
+                    valDoc.append("URL", url);
+                    valDoc.append("Freq", hfreq.get(hmodifiedWord));
+                    valDoc.append("Title",PageTitle);
+                    valDoc.append("Importance","HTag");
+
+
+                    val.add(valDoc);
+
+                    newDoc.append(hmodifiedWord, val);
+                }
+
+                for (String pmodifiedWord : pmodifiedWords) {
+                    Document valDoc = new Document();
+                    ArrayList<Document> val = new ArrayList<>();
+
+
+                    valDoc.append("URL", url);
+                    valDoc.append("Freq", pfreq.get(pmodifiedWord));
+                    valDoc.append("Title",PageTitle);
+                    valDoc.append("Importance","PTag");
+
+                    val.add(valDoc);
+
+                    newDoc.append(pmodifiedWord, val);
                 }
 
                 IndexerCollection.insertOne(newDoc);
@@ -335,6 +414,8 @@ public class Indexer {
                                 n.append("URL", url);
                                 n.append("Freq", freq.get(modifiedWord));
                                 n.append("Title",PageTitle);
+                                n.append("Importance","PlainText");
+
                                 docList.add(n);
                                 result.replace(modifiedWord, docList);
 
@@ -349,6 +430,8 @@ public class Indexer {
                         valDoc.append("URL", url);
                         valDoc.append("Freq", freq.get(modifiedWord));
                         valDoc.append("Title",PageTitle);
+                        valDoc.append("Importance","PlainText");
+
 
                         val.add(valDoc);
 
@@ -356,8 +439,108 @@ public class Indexer {
 
                     }
                 }
-                System.out.println(result.size());
-                System.out.println(oldDoc.size());
+
+                for (String hmodifiedWord : hmodifiedWords) {
+//                    ArrayList<String> newurls = new ArrayList<>();
+                    ArrayList<Document> docList;
+                    if (result.get(hmodifiedWord) != null) {
+
+                        if (result.get(hmodifiedWord).getClass() == ArrayList.class) {
+                            docList = (ArrayList<Document>) result.get(hmodifiedWord);
+//                            System.out.println(docList.size());
+                            boolean found = false;
+                            for (Document document : docList) {
+//                                System.out.println(docList.get(j).get("URL"));
+                                if (Objects.equals(document.get("URL").toString(), url)) {
+                                    found = true;
+                                    break;
+                                }
+
+//                                System.out.println("After = "+docList.size());
+
+
+                            }
+                            if (!found) {
+                                Document n = new Document();
+                                n.append("URL", url);
+                                n.append("Freq", hfreq.get(hmodifiedWord));
+                                n.append("Title",PageTitle);
+                                n.append("Importance","HTag");
+
+                                docList.add(n);
+                                result.replace(hmodifiedWord, docList);
+
+                            }
+                        }
+//
+                    } else {
+                        Document valDoc = new Document();
+                        ArrayList<Document> val = new ArrayList<>();
+
+
+                        valDoc.append("URL", url);
+                        valDoc.append("Freq", freq.get(hmodifiedWord));
+                        valDoc.append("Title",PageTitle);
+                        valDoc.append("Importance","HTag");
+
+
+                        val.add(valDoc);
+
+                        result.append(hmodifiedWord, val);
+
+                    }
+                }
+                for (String pmodifiedWord : pmodifiedWords) {
+//                    ArrayList<String> newurls = new ArrayList<>();
+                    ArrayList<Document> docList;
+                    if (result.get(pmodifiedWord) != null) {
+
+                        if (result.get(pmodifiedWord).getClass() == ArrayList.class) {
+                            docList = (ArrayList<Document>) result.get(pmodifiedWord);
+//                            System.out.println(docList.size());
+                            boolean found = false;
+                            for (Document document : docList) {
+//                                System.out.println(docList.get(j).get("URL"));
+                                if (Objects.equals(document.get("URL").toString(), url)) {
+                                    found = true;
+                                    break;
+                                }
+
+//                                System.out.println("After = "+docList.size());
+
+
+                            }
+                            if (!found) {
+                                Document n = new Document();
+                                n.append("URL", url);
+                                n.append("Freq", pfreq.get(pmodifiedWord));
+                                n.append("Title",PageTitle);
+                                n.append("Importance","PTag");
+
+                                docList.add(n);
+                                result.replace(pmodifiedWord, docList);
+
+                            }
+                        }
+//
+                    } else {
+                        Document valDoc = new Document();
+                        ArrayList<Document> val = new ArrayList<>();
+
+
+                        valDoc.append("URL", url);
+                        valDoc.append("Freq", pfreq.get(pmodifiedWord));
+                        valDoc.append("Title",PageTitle);
+                        valDoc.append("Importance","PTag");
+
+
+                        val.add(valDoc);
+
+                        result.append(pmodifiedWord, val);
+
+                    }
+                }
+                System.out.println("Number of Words = " + result.size());
 
                 Document filter = new Document("_id", result.get("_id"));
                 IndexerCollection.replaceOne(filter, result);
