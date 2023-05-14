@@ -35,6 +35,8 @@ const db = client.db(dbName);
 // const IndexerCollection = db.collection("IndexerDB");
 const searchDB = db.collection("searchDB");
 const resultDB = db.collection("resultDB");
+const queryCollection = db.collection("queryCollection");
+
 // const PhraseCollection = db.collection("phraseSearchingDB");
 
 app.post("/search", (req, res) => {
@@ -120,4 +122,38 @@ app.post("/search", (req, res) => {
       });
     // console.log(resultDB.findOne({ Query: query }));
   }
+});
+
+app.post("/suggestions", (req, res) => {
+  const query = req.body.query;
+  if (query === "") {
+    res.send("Not Found");
+    return;
+  }
+  let suggestions = [];
+  queryCollection
+    .findOne({})
+    .then(function (err, doc) {
+      if (err) throw err;
+    })
+    .catch((doc) => {
+      const myArray = Object.entries(doc);
+
+      myArray.sort(function (a, b) {
+        return b[1] - a[1];
+      });
+
+      const sortedObject = Object.fromEntries(myArray);
+
+      // console.log(Object.keys(sortedObject));
+
+      const keys = Object.keys(sortedObject);
+      for (let i = 0; i < keys.length; i++) {
+        if (keys[i].includes(query) && keys[i] !== "_id") {
+          suggestions.push({ value: keys[i], label: keys[i] });
+        }
+      }
+
+      res.send({ suggestions: suggestions });
+    });
 });

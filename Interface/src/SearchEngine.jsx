@@ -2,28 +2,37 @@ import "./SearchEngine.css";
 import Axios from "axios";
 // import api from './api/axiosConfig'
 import searchimage from "./images/search.png";
+// import arr from "./SearchedQueriesData.js";
+import { useState } from "react";
+// import { Autocomplete } from "@material-ui/lab";
+// import { TextField } from "@material-ui/core";
+import Select from "react-select";
 
 const SearchEngine = (props) => {
-//   const https = require("https");
-  // const cheerio = require("cheerio");
-  // const http = require("http");
-  // const { JSDOM } = require("jsdom");
+  
+  const [value, setValue] = useState("");
+
+  const [suggestions, setSuggestions] = useState([]);
 
 
+ 
 
-
-  // const handleSearchButton2 = async () => {
-  //   fetch(`http://localhost:8080/api/search/${props.query}`,{mode:'no-cors'}).then((res) => {
-  //   console.log(res)
-  // });
-    
-  // }
-
-  const handleSearchButton = async () => {
-    await Axios.post("http://localhost:3001/search", {
+  const handleSuggestions = async () => {
+    await Axios.post("http://localhost:3001/suggestions", {
       query: props.query,
+    }).then((res) => {
+      // console.log(res.data.suggestions)
+      if (res.data.suggestions) setSuggestions(res.data.suggestions);
+    });
+  };
+
+  const handleSearchButton = async (val) => {
+    // console.log(value);
+    await Axios.post("http://localhost:3001/search", {
+      query: val,
     })
       .then((res) => {
+        // console.log(props.query)
         // console.log("here");
         // console.log(res.data.links);
         // console.log(res.data)
@@ -71,17 +80,42 @@ const SearchEngine = (props) => {
         setTimeout(() => {}, 5000);
       });
     // handleSearchButton2();
+    // setValue(props.query)
   };
+
+  function handleChange(selectedOption) {
+    setValue(selectedOption.label);
+  }
+
   return (
     <div className="searchForm">
-      <input
-        className="searchQuery"
-        id="searchfield"
-        onChange={(e) => props.setQuerySearch(e.target.value)}
-        type="text"
-        placeholder="search for ..."
-      ></input>
-      <button className="search" onClick={handleSearchButton}>
+      <Select
+        options={suggestions}
+        className="searchQueryList"
+        onInputChange={(inputValue) => {
+          if (inputValue !== "") {
+            setValue(inputValue);
+            props.setQuerySearch(value);
+            // console.log(inputValue);
+            handleSuggestions();
+          }
+          else {
+            // setValue(inputValue);
+            // setValue("")
+            props.setQuerySearch(value);
+            setSuggestions([])
+          }
+        }}
+        onChange={handleChange}
+        value={{ label: value }}
+        placeholder="Search"
+      />
+      <button
+        className="search"
+        onClick={() => {
+          handleSearchButton(value);
+        }}
+      >
         <img src={searchimage} alt="search button" id="searchimg" />
       </button>
     </div>

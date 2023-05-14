@@ -1,3 +1,4 @@
+import Query_Phrase_Processor.Query_Phrase_Processor;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
@@ -73,7 +74,7 @@ public class SearchServer {
                 ArrayList<String>descriptions=new ArrayList<>();
                 for (String url : urls) {
                     try{
-                    String snippet = tstparagraph.generateSnippet(url, Query);
+                    String snippet = Query_Phrase_Processor.generateSnippet(url, Query);
 
                     descriptions.add(snippet);}
                     catch (Exception e)
@@ -82,8 +83,8 @@ public class SearchServer {
                     }
                 }
 
-                urls.forEach(System.out::println);
-                titles.forEach(System.out::println);
+//                urls.forEach(System.out::println);
+//                titles.forEach(System.out::println);
 //                descriptions.forEach(System.out::println);
 
 
