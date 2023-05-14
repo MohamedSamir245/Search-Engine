@@ -148,7 +148,7 @@ public class Query_Phrase_Processor {
                 String text = element.text();
                 if (text.contains(term)) {
                     snippet = text;
-                    System.out.println(snippet);
+//                    System.out.println(snippet);
                     break;
                 }
 
