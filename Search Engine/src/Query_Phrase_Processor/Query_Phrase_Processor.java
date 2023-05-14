@@ -2,6 +2,7 @@
 //TODO: fix it to work after you changed the IndexerDB
 package Query_Phrase_Processor;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -69,10 +70,10 @@ public class Query_Phrase_Processor {
         return Arrays.stream(finalWords).distinct().toArray(String[]::new);
     }
 
-    public static Document getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
+    public static Document getURLs(String[] words, Document indexerdoc, FindIterable<Document> phraseSearchingdoc) {
 
         ArrayList<String> links = new ArrayList<>();
-        ArrayList<String> titles=new ArrayList<>();
+        ArrayList<String> titles = new ArrayList<>();
 
 
         for (int i = 0; i < words.length - 1; i++) {
@@ -80,12 +81,11 @@ public class Query_Phrase_Processor {
 //            Document search = new Document(words[i]);
 
 
-
-            ArrayList<Document> sub = (ArrayList<Document>)indexerdoc.get(words[i]);
-            if(sub==null)
+            ArrayList<Document> sub = (ArrayList<Document>) indexerdoc.get(words[i]);
+            if (sub == null)
                 continue;
 
-            ArrayList<String>websites=new ArrayList<>();
+            ArrayList<String> websites = new ArrayList<>();
 
 
             System.out.println(sub.size());
@@ -99,7 +99,7 @@ public class Query_Phrase_Processor {
 
 //            if (result != null) {
 //                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
-                links.addAll(websites);
+            links.addAll(websites);
 
 //            }
 
@@ -108,16 +108,16 @@ public class Query_Phrase_Processor {
         if (!Objects.equals(words[words.length - 1], "")) {
             MongoCursor<Document> cursor = phraseSearchingdoc.iterator();
 
-            System.out.println(words[words.length-1]);
+            System.out.println(words[words.length - 1]);
 
             try {
                 while (cursor.hasNext()) {
                     Document doc = cursor.next();
                     String html = (String) doc.get("PageBody");
                     String url = (String) doc.get("PageLink");
-                    String title=(String) doc.get("PageTitle");
+                    String title = (String) doc.get("PageTitle");
 
-    titles.add(title);
+                    titles.add(title);
                     if (html.contains(words[words.length - 1])) {
                         links.add(url);
                     }
@@ -127,23 +127,38 @@ public class Query_Phrase_Processor {
             }
         }
 
-        Document res=new Document("Links",links.stream().distinct().toArray(String[]::new));
-        res.append("Titles",titles.stream().distinct().toArray(String[]::new));
+        Document res = new Document("Links", links.stream().distinct().toArray(String[]::new));
+        res.append("Titles", titles.stream().distinct().toArray(String[]::new));
         return res;
 
     }
 
     public static String generateSnippet(String url, String searchTerm) throws Exception {
+//        System.out.println(searchTerm);
+        String[] terms = searchTerm.split(" ");
+//        for (String term : terms) {
+//            System.out.println(term);
+//        }
         org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
-        Elements elements = doc.getElementsContainingOwnText(searchTerm);
         String snippet = "";
-        for (org.jsoup.nodes.Element element : elements) {
-            String text = element.text();
-            if (text.contains(searchTerm)) {
-                snippet = text;
+
+        for (String term : terms) {
+            Elements elements = doc.getElementsContainingOwnText(term);
+            for (org.jsoup.nodes.Element element : elements) {
+                String text = element.text();
+                if (text.contains(term)) {
+                    snippet = text;
+                    System.out.println(snippet);
+                    break;
+                }
+
+
+            }
+            if (!snippet.equals("")) {
                 break;
             }
         }
+
         return snippet;
     }
 

@@ -1,29 +1,35 @@
 import "./Page.css";
-import {React} from "react"
+import { React } from "react";
 
-const Page = ({ pageName, pageLink, pageParagraph ,query}) => {
-  const viewDescription = () =>
-  {
-    const parts=pageParagraph.split(query)
-    return (
-      <p className="paragraph">
-        {parts.map((part, index) => {
-          if (index === parts.length - 1) {
-            return <span key={index}>{part}</span>;
-          }
-          return (
-            // <React.Fragment key={index}>
-            <span key={index}>
-              <span>{part}</span>
-              <strong>{query}</strong>
-            </span>
+const Page = ({ pageName, pageLink, pageParagraph, query }) => {
+  const viewDescription = () => {
+    const terms = query.split(" ");
+    for (let i = 0; i < terms.length; i++) {
+      if (!pageParagraph.includes(terms[i]))
+      {
+        continue;
+        }
+      const parts = pageParagraph.split(terms[i]);
+      return (
+        <p className="paragraph">
+          {parts.map((part, index) => {
+            if (index === parts.length - 1) {
+              return <span key={index}>{part}</span>;
+            }
+            return (
+              // <React.Fragment key={index}>
+              <span key={index}>
+                <span>{part}</span>
+                <strong>{query}</strong>
+              </span>
 
-            // </React.Fragment>
-          );
-        })}
-      </p>
-    );
-  }
+              // </React.Fragment>
+            );
+          })}
+        </p>
+      );
+    }
+  };
   return (
     <>
       <div className="container">
