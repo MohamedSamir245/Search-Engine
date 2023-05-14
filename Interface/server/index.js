@@ -48,32 +48,76 @@ app.post("/search", (req, res) => {
 
   const document = { _id: new ObjectId(), Query: query };
 
-  searchDB
-    .insertOne(document, (err, res) => {
-      if (err) {
-        console.log(err);
-      }
-    })
-    .then(() => {
-      console.log("query inserted");
-      setTimeout(() => {
-        let doc = resultDB.find({ Query: query });
-        doc.toArray().then((val) => {
-          if (val.length !== 0) {
+  searchDB.insertOne(document, (err, res) => {
+    if (err) {
+      console.log(err);
+    }
+    console.log("query inserted");
+  });
+  // // .then(() => {
+  // // setTimeout(() => {
+  // let doc = resultDB.find({ Query: query });
+  // doc.toArray().then((val) => {
+  //   if (val.length !== 0) {
+  //     res.send({
+  //       links: val.at(0).URLs,
+  //       titles: val.at(0).Titles,
+  //       descriptions: val.at(0).Descriptions,
+  //     });
+  //     resultDB.deleteMany(val.at(0));
+  //   } else {
+  //     console.log("Not Found");
 
-            res.send({
-              links: val.at(0).URLs,
-              titles: val.at(0).Titles,
-              descriptions: val.at(0).Descriptions,
-            });
-            resultDB.deleteMany(val.at(0));
-          } else {
-            console.log("Not Found");
+  //     res.send("Not Found");
+  //   }
+  // });
 
-            res.send("Not Found");
-          }
-        });
-      }, 3000);
-    });
+  waitForData(db, function (doc) {});
 
+  function waitForData(db, callback) {
+    // console.log("Inside waitForData");
+
+    // Check if there is data in the collection
+    resultDB
+      .findOne({ Query: query })
+      .then((err, doc) => {
+        // console.log("Inside Func of findOne");
+
+        if (err) throw err;
+
+        // If there is data, call the callback function
+        if (doc) {
+          console.log("Data found!");
+
+          // callback(doc);
+        } else {
+          console.log("No data found. Waiting...");
+
+          // If there is no data, wait for a short time and check again
+          setTimeout(function () {
+            waitForData(db, callback);
+          }, 1000);
+        }
+      })
+      .catch((doc) => {
+        // console.log("ggggggggg");
+        callback(doc);
+        console.log("Inside Callback");
+        //  doc.then((val) => {
+        if (doc !== null) {
+          res.send({
+            links: doc.URLs,
+            titles: doc.Titles,
+            descriptions: doc.Descriptions,
+          });
+          resultDB.deleteMany(doc);
+        } else {
+          console.log("Not Found");
+
+          res.send("Not Found");
+        }
+        //  });
+      });
+    // console.log(resultDB.findOne({ Query: query }));
+  }
 });

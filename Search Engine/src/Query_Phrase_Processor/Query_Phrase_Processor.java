@@ -1,17 +1,14 @@
 //TODO: remove stop words
 //TODO: fix it to work after you changed the IndexerDB
+package Query_Phrase_Processor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+
 import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
 
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -21,117 +18,11 @@ import org.jsoup.Jsoup;
 //import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import javax.print.Doc;
+
+public class Query_Phrase_Processor {
 
 
-public class QueryProcessor {
-    public static void main(String[] args) throws Exception {
-        //TODO take the query and assign it to (Query) variable
-
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
-
-        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
-        MongoCollection<Document> searchDB = MongoDB.getCollection("searchDB");
-        MongoCollection<Document> resultDB = MongoDB.getCollection("resultDB");
-
-
-//        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
-//        MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
-        MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
-        Document indexerdoc = IndexerCollection.find().first();
-        MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
-        FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
-
-
-        //for suggestion mechanism
-        MongoCollection<Document> queryCollection = MongoDB.getCollection("queryCollection");
-
-
-
-
-
-
-
-        while (true) {
-            Document result = searchDB.find().first();
-//
-            if (result != null) {
-                String Query = (String) result.get("Query");
-//
-                searchDB.deleteMany(result);
-//
-                System.out.println(Query);
-
-                Document queriesDoc=queryCollection.find().first();
-                if(queriesDoc==null)
-                {
-                    Document tmpd=new Document(Query,1);
-                    queryCollection.insertOne(tmpd);
-                }
-                else if(queriesDoc.get(Query)==null)
-                {
-                    queriesDoc.append(Query,1);
-
-                    Document filter = new Document("_id", queriesDoc.get("_id"));
-                    queryCollection.replaceOne(filter, queriesDoc);
-                }
-                else
-                {
-
-                    int oldval=(int)queriesDoc.get(Query);
-                    queriesDoc.replace(Query,oldval+1);
-
-                    Document filter = new Document("_id", queriesDoc.get("_id"));
-                    queryCollection.replaceOne(filter, queriesDoc);
-
-                }
-
-//
-//                String Query="enter";
-                Document res=getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc);
-//                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
-                ArrayList<String>urls=new ArrayList<>(Arrays.asList((String[])res.get("Links"))) ;
-                ArrayList<String>titles=new ArrayList<>(Arrays.asList((String[]) res.get("Titles")));
-                ArrayList<String>descriptions=new ArrayList<>();
-                for (String url : urls) {
-                    String snippet = tstparagraph.generateSnippet(url, Query);
-
-                    descriptions.add(snippet);
-                }
-
-                urls.forEach(System.out::println);
-                titles.forEach(System.out::println);
-                descriptions.forEach(System.out::println);
-
-
-
-                Document r = new Document();
-                r.append("Query",Query);
-                r.append("URLs",urls);
-                r.append("Titles",titles);
-                r.append("Descriptions",descriptions);
-//                r.append("")
-//
-//
-                resultDB.insertOne(r);
-
-
-            }
-        }
-
-
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.println("Enter query");
-//        String input = scanner.nextLine();
-
-//        String[]urls=getURLs(getQueryWords(input));
-
-//        for(int i=0;i<urls.length;i++)
-//            System.out.println(urls[i]);
-
-    }
-
-    static String[] getQueryWords(String input) {
+    public static String[] getQueryWords(String input) {
         String Phrase = "", tempWords;
         String wordsOnly[];
         input = input.replaceAll(",|\\.|!|\\?|:|;|\\)|\\(|\\[|]|\\*&\\^%\\$|\'", "");
@@ -178,7 +69,7 @@ public class QueryProcessor {
         return Arrays.stream(finalWords).distinct().toArray(String[]::new);
     }
 
-    static Document getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
+    public static Document getURLs(String[] words,Document indexerdoc,FindIterable<Document> phraseSearchingdoc) {
 
         ArrayList<String> links = new ArrayList<>();
         ArrayList<String> titles=new ArrayList<>();
