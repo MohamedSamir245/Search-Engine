@@ -42,26 +42,7 @@ const SearchEngine = (props) => {
             const url = res.data.links[i];
             const title = res.data.titles[i];
             const discription = res.data.descriptions[i];
-            // console.log(discription)
-
-            // http
-            //   .get(url, (response) => {
-            //     let html = "";
-
-            //     response.on("data", (chunk) => {
-            //       html += chunk;
-            //     });
-
-            //     response.on("end", () => {
-            //       const dom = new JSDOM(html);
-            //       const pageTitle = dom.window.document.title;
-            //       console.log(pageTitle);
-            //       title=pageTitle;
-            //     });
-            //   })
-            //   .on("error", (error) => {
-            //     console.error(error);
-            //   });
+        
 
             let dic = {
               pageName: title,
@@ -70,9 +51,15 @@ const SearchEngine = (props) => {
             };
             alldics.push(dic);
           }
-          props.setViewed(alldics);
+          props.setAllPages(alldics);
+          props.setViewed(alldics.slice(0, 10));
+
+          
         } else {
+          props.setAllPages([]);
           props.setViewed([]);
+
+          
         }
       })
       .catch((error) => {

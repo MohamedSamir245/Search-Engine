@@ -333,6 +333,7 @@ public class Indexer {
                     System.out.println("Size of P Tags = " + pmodifiedWords.size());
 
 
+
                     synchronized (IndexerCollection) {
                         Document result = IndexerCollection.find().first();
 

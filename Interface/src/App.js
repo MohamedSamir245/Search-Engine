@@ -9,6 +9,7 @@ function App() {
   const [indexBegin, setIndexBegin] = useState(0);
   const [querySearch, setQuerySearch] = useState("");
   const [viewed, setViewed] = useState([]);
+  const [allPages, setallPages] = useState([]);
   const viewPages = viewed.map(({ pageName, pageLink, pageParagraph }) => {
     return (
       <Page
@@ -26,6 +27,7 @@ function App() {
       <SearchEngine
         setQuerySearch={setQuerySearch}
         setViewed={setViewed}
+        setAllPages={setallPages}
         query={querySearch}
       />
       {viewPages}
@@ -34,6 +36,8 @@ function App() {
         setIndexBegin={setIndexBegin}
         viewed={viewed}
         setViewed={setViewed}
+        allPages={allPages}
+        setAllPages={setallPages}
       />
     </>
   );
