@@ -1,14 +1,16 @@
 // TODO: save State
+//                      1. Add docs to DB --> Done
+//                      2. Add state!! to DB
+//                      3. Thread leave early!!
 
 // ----------------- Libraries -----------------------
 
 package Crawler;
+
+// *** MongoDB ***
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
-
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -29,7 +31,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 // HTTP
 import java.net.HttpURLConnection;
 
@@ -48,83 +49,30 @@ import java.net.URLEncoder;
 
 //  ---------------------   Code    ----------------------------
 public class Main {
-
-
-    private static ThreadsCrawler myThreadsCrawler =new ThreadsCrawler();
-
     public static void main(String[] args)
     {
+//       **** MongoDB ****
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
-
         MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
         MongoCollection<org.bson.Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
 
-//        I return what you want :)
-
-        ArrayList<Document> docsArray=getDocs();
-
-        for(int i=0;i<docsArray.size();i++)
-        {
-            Document dd=getDocs().get(i);
-            org.bson.Document d=new org.bson.Document("URL",dd.baseUri());
-            d.append("BodyText",dd.body().text());
-            d.append("State","Done");
-            d.append("Title",dd.title());
-
-//            Elements h1Elements = dd.getElementsByTag("h1");
-//            Elements h2Elements = dd.getElementsByTag("h2");
-//            Elements h3Elements = dd.getElementsByTag("h3");
-//            Elements h4Elements = dd.getElementsByTag("h4");
-//            Elements h5Elements = dd.getElementsByTag("h5");
-//            Elements h6Elements = dd.getElementsByTag("h6");
-
-
-//
-//
-//
-//
-//            for(int j=0;j< h1Elements.size();j++)
-//            {
-//               Element element= h1Elements.get(j);
-//
-//               element.text();
-//            }
-
-
-
-            if(CrawlerCollection.find(d).first()==null)
-                CrawlerCollection.insertOne(d);
-
-        }
-
-
-
-
-//        System.out.println(getDocs().get(20));
-
+        ThreadsCrawler myThreadsCrawler =new ThreadsCrawler(CrawlerCollection); // TODO: I am new :)
     }
-
-    public static ArrayList<Document> getDocs()
-    {
-        return myThreadsCrawler.getDocs();
-    }
-
-
-
-
 
 }
 
 class ThreadsCrawler {
-    public ThreadsCrawler() {
 
+    private static Crawler myCrawler1;
+    private static MongoCollection<org.bson.Document> CrawlerCollection;
+    public ThreadsCrawler(MongoCollection<org.bson.Document> c) {
+        CrawlerCollection=c;
+        myCrawler1= new Crawler(CrawlerCollection);
         int ThreadsNum = ReadThreadNumber();
         System.out.println("Crawler: Threads start");
         run(ThreadsNum);
-
     }
 
-    private static Crawler c = new Crawler();
 
     private int ReadThreadNumber()
     {
@@ -152,7 +100,7 @@ class ThreadsCrawler {
     private void run(int ThreadsNum){
         ArrayList<Thread> threads=new ArrayList<>();
 
-        CreateThreads(threads,ThreadsNum,c);
+        CreateThreads(threads,ThreadsNum, myCrawler1);
         StartThreads(threads,ThreadsNum);
         JoinThreads(threads,ThreadsNum);
 
@@ -163,7 +111,7 @@ class ThreadsCrawler {
 
     public ArrayList<Document> getDocs()
     {
-        return c.getDocs();
+        return myCrawler1.getDocs();
     }
     private void CreateThreads(ArrayList<Thread> threads,int ThreadsNum, Crawler c){
         for (int i=0;i<ThreadsNum;i++) {
@@ -193,8 +141,11 @@ class Crawler implements Runnable {
     private final ArrayList<String> visited= new ArrayList<>();
     private final ArrayList<Document> docs = new ArrayList<>();
     private static final Object myLock = new Object();
+    MongoCollection<org.bson.Document> CrawlerCollection;
 
-    public Crawler() {
+
+    public Crawler(MongoCollection<org.bson.Document> c) {
+        CrawlerCollection =c;
         System.out.println("Crawler: Start...");
 
         System.out.println("Crawler: Read seedLinks");
@@ -203,7 +154,7 @@ class Crawler implements Runnable {
     }
     private void ReadSeedLinks(){
         try {
-            File myObj = new File("Search Engine\\src\\Crawler\\seedLinks.txt");
+            File myObj = new File("src\\seedLinks.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
@@ -224,7 +175,9 @@ class Crawler implements Runnable {
     private void doWork(){
         try {
         crawler();
-    }catch (Exception e){e.getStackTrace();}
+    }catch (Exception e){
+            e.getStackTrace();
+        }
     }
     
     public ArrayList<Document> getDocs()
@@ -237,7 +190,7 @@ class Crawler implements Runnable {
     //    =================================================================
 
     private void crawler() throws Exception {
-        int MAX_CRAWLED = 60; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+        int MAX_CRAWLED = 6000; // TODO: set limit
         String link;
         while (links.isEmpty())
         {
@@ -246,6 +199,7 @@ class Crawler implements Runnable {
             }
         }
         while( !links.isEmpty() && docs.size() < MAX_CRAWLED)
+//        while( docs.size() < MAX_CRAWLED)
         {
             synchronized (myLock) {
                 while (links.isEmpty())
@@ -292,6 +246,15 @@ class Crawler implements Runnable {
             {
                 System.out.println("Thread "+Thread.currentThread().getId()+" | seedLink: " + link); // Delete
                 System.out.println("Title : "+doc.title());    // Delete
+
+                Document dd=doc;
+                org.bson.Document d=new org.bson.Document("URL",dd.baseUri());
+                d.append("BodyText",dd.body().text());
+                d.append("State","Done");
+                d.append("Title",dd.title());
+                if(CrawlerCollection.find(d).first()==null)
+                    CrawlerCollection.insertOne(d);
+
 
                 return  doc;
             }
@@ -441,8 +404,6 @@ class Crawler implements Runnable {
                     return true;
                 }
             } catch (PatternSyntaxException e) {
-//                System.err.println(rule + ": pattern exception, " + e.getMessage());
-//                Output.log(rule + ": pattern exception, " + e.getMessage());
                 e.getStackTrace();
             }
         }
