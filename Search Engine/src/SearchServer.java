@@ -67,7 +67,7 @@ public class SearchServer {
 
 //
 //                String Query="enter";
-                Document res=getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc);
+                Document res=getURLs(getQueryWords(Query.toLowerCase()),IndexerCollection,phraseSearchingdoc);
 //                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
                 ArrayList<String> urls=new ArrayList<>(Arrays.asList((String[])res.get("Links"))) ;
                 ArrayList<String>titles=new ArrayList<>(Arrays.asList((String[]) res.get("Titles")));

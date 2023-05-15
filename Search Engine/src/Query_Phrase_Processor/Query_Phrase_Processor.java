@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
 import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
@@ -81,22 +82,26 @@ public class Query_Phrase_Processor {
         return Arrays.stream(finalWords).distinct().toArray(String[]::new);
     }
 
-    public static Document getURLs(String[] words, Document indexerdoc, FindIterable<Document> phraseSearchingdoc) {
+    public static Document getURLs(String[] words, MongoCollection<Document> IndexerCollection, FindIterable<Document> phraseSearchingdoc) {
 
         ArrayList<String> links = new ArrayList<>();
         ArrayList<String> titles = new ArrayList<>();
+
+
 
 
         for (int i = 0; i < words.length - 1; i++) {
 
 //            Document search = new Document(words[i]);
 
+            Document indexerdoc= IndexerCollection.find(new Document("Word",words[i])).first();
 
-            ArrayList<Document> sub = (ArrayList<Document>) indexerdoc.get(words[i]);
+
+            ArrayList<Document> sub = (ArrayList<Document>) indexerdoc.get("Data");
             if (sub == null)
                 continue;
 
-            ArrayList<String> websites = new ArrayList<>();
+//            ArrayList<String> websites = new ArrayList<>();
 
 
             System.out.println(sub.size());
