@@ -422,6 +422,7 @@ class Crawler implements Runnable {
         }
 
 //          Case: when there is no robot.txt
+//          A website without a robots.txt file, robots meta tag, or X-Robots-Tag HTTP headers will generally be crawled and indexed normally.
         if(RobotsTxt.get(url.getHost())== null)
         {
             return true;
