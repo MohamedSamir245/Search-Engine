@@ -39,7 +39,7 @@ public class SearchServer {
 //
                 searchDB.deleteMany(result);
 //
-                System.out.println(Query);
+//                System.out.println("Inside Search Server"+Query);
 
                 Document queriesDoc=queryCollection.find().first();
                 if(queriesDoc==null)
@@ -74,6 +74,8 @@ public class SearchServer {
                 ArrayList<String>descriptions=new ArrayList<>();
                 for (String url : urls) {
                     try{
+//                        System.out.println("Before calling generateSnippit"+Query);
+
                     String snippet = Query_Phrase_Processor.generateSnippet(url, Query);
 
                     descriptions.add(snippet);}
@@ -96,7 +98,11 @@ public class SearchServer {
                 r.append("Descriptions",descriptions);
 //                r.append("")
 //
-//
+//                System.out.println("Sizes from inside Search Server");
+//                System.out.println(urls.size());
+//                System.out.println(titles.size());
+//                System.out.println(descriptions.size());
+
                 resultDB.insertOne(r);
 
 
