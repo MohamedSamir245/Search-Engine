@@ -1,7 +1,7 @@
 // TODO: save State
 //                      1. Add docs to DB --> Done
 //                      2. Add state!! to DB
-//                      3. Thread leave early!!
+//                      3. Thread leave early!! --> Done?
 
 // ----------------- Libraries -----------------------
 
@@ -147,7 +147,6 @@ class Crawler implements Runnable {
     public Crawler(MongoCollection<org.bson.Document> c) {
         CrawlerCollection =c;
         System.out.println("Crawler: Start...");
-
         System.out.println("Crawler: Read seedLinks");
         ReadSeedLinks();
 
@@ -174,12 +173,12 @@ class Crawler implements Runnable {
     }
     private void doWork(){
         try {
-        crawler();
-    }catch (Exception e){
+            crawler();
+        }catch (Exception e){
             e.getStackTrace();
         }
     }
-    
+
     public ArrayList<Document> getDocs()
     {
         return docs;
@@ -203,7 +202,7 @@ class Crawler implements Runnable {
         {
             synchronized (myLock) {
                 while (links.isEmpty())
-                         myLock.wait();
+                    myLock.wait();
                 link=links.poll();
             }
 
@@ -353,9 +352,9 @@ class Crawler implements Runnable {
         }
 
         synchronized (myLock){
-        RobotsTxt.put(url.getHost(),rulesLines);
+            RobotsTxt.put(url.getHost(),rulesLines);
+        }
     }
-}
 
     //    Takes robotFile lines in ArrayList and crawlerUserAgent --> Return Disallowed rules
     private static ArrayList<String> praseRobotTxt(ArrayList<String> robotFile, String userAgent) {
@@ -420,6 +419,12 @@ class Crawler implements Runnable {
 //            fetch rules
             fetchRobotTxt(url);
 
+        }
+
+//          Case: when there is no robot.txt
+        if(RobotsTxt.get(url.getHost())== null)
+        {
+            return true;
         }
 
 //            check rules
