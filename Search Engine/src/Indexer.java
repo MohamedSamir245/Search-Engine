@@ -284,7 +284,7 @@ public class Indexer {
 
 
                     Document htmlDoc = new Document();
-                    htmlDoc.append("PageBody", bodyTextt);
+                    htmlDoc.append("PageBody", bodyTextt.toLowerCase());
                     htmlDoc.append("PageLink", url);
                     htmlDoc.append("PageTitle", PageTitle);
 

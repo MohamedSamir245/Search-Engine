@@ -53,6 +53,7 @@ const SearchEngine = (props) => {
           }
           props.setAllPages(alldics);
           props.setViewed(alldics.slice(0, 10));
+          // console.log(alldics.length)
 
           
         } else {

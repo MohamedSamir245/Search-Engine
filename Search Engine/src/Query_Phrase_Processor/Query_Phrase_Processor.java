@@ -25,7 +25,7 @@ public class Query_Phrase_Processor {
 
     public static String[] getQueryWords(String input) {
         String Phrase = "", tempWords;
-        String wordsOnly[];
+        String wordsOnly[] = new String[0];
         input = input.replaceAll(",|\\.|!|\\?|:|;|\\)|\\(|\\[|]|\\*&\\^%\\$|\'", "");
         input = input.replaceAll("/|\\\\|", "");
         input = input.replaceAll("©|»|-|\\{|}|=", "");
@@ -33,14 +33,25 @@ public class Query_Phrase_Processor {
         if (input.indexOf("\"") != input.lastIndexOf("\"")) {
             if (input.startsWith("\"")) {
                 Phrase = words__phrase[1];
-                wordsOnly = words__phrase[2].split(" ");
+                if (words__phrase.length > 2)
+                    wordsOnly = words__phrase[2].split(" ");
+                else
+                {
+                    tempWords="";
+                }
+
             } else if (input.endsWith("\"")) {
                 Phrase = words__phrase[1];
                 wordsOnly = words__phrase[0].split(" ");
             } else {
                 Phrase = words__phrase[1];
                 tempWords = words__phrase[0];
-                tempWords += words__phrase[2];
+                if (words__phrase.length > 2)
+                    tempWords += words__phrase[2];
+                else
+                {
+                    tempWords="";
+                }
                 wordsOnly = tempWords.split(" ");
 
             }
@@ -90,27 +101,36 @@ public class Query_Phrase_Processor {
 
             System.out.println(sub.size());
 
+
             for (Document document : sub) {
-                websites.add((String) document.get("URL"));
-                titles.add((String) document.get("Title"));
+                if(!links.contains(document.get("URL")))
+                {
+                    links.add((String) document.get("URL"));
+                    titles.add((String) document.get("Title"));
+//                    System.out.println(titles.get(titles.size()-1));
+
+
+                }
+
+//                websites.add((String) document.get("URL"));
+//                titles.add((String) document.get("Title"));
 
             }
 //            Document result = IndexerCollection.find(search).first();
 
 //            if (result != null) {
 //                ArrayList<String> sub = (ArrayList<String>) result.get("URLs");
-            links.addAll(websites);
+//            links.addAll(websites);
 
 //            }
 
         }
 
         if (!Objects.equals(words[words.length - 1], "")) {
-            MongoCursor<Document> cursor = phraseSearchingdoc.iterator();
 
-            System.out.println(words[words.length - 1]);
+//            System.out.println(words[words.length - 1]);
 
-            try {
+            try (MongoCursor<Document> cursor = phraseSearchingdoc.iterator()) {
                 while (cursor.hasNext()) {
                     Document doc = cursor.next();
                     String html = (String) doc.get("PageBody");
@@ -122,30 +142,41 @@ public class Query_Phrase_Processor {
                         links.add(url);
                     }
                 }
-            } finally {
-                cursor.close();
+            }
+            catch (Exception e)
+            {
+                titles.add("");
             }
         }
 
-        Document res = new Document("Links", links.stream().distinct().toArray(String[]::new));
-        res.append("Titles", titles.stream().distinct().toArray(String[]::new));
+        Document res = new Document("Links", links.toArray(String[]::new));
+        res.append("Titles", titles.toArray(String[]::new));
         return res;
 
     }
 
     public static String generateSnippet(String url, String searchTerm) throws Exception {
-//        System.out.println(searchTerm);
-        String[] terms = searchTerm.split(" ");
-//        for (String term : terms) {
-//            System.out.println(term);
-//        }
+
+//        System.out.println("Search Term "+ searchTerm);
+       String[] terms = getQueryWords(searchTerm);
+
+//       for(String l:terms)
+//       {
+//           System.out.println("Term "+l);
+//       }
+
+//        System.out.println("dkjfsahkdjshaf"+searchTerm);
+
+
+
         org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
         String snippet = "";
 
         for (String term : terms) {
             Elements elements = doc.getElementsContainingOwnText(term);
             for (org.jsoup.nodes.Element element : elements) {
-                String text = element.text();
+                String text = element.text().toLowerCase();
+//                System.out.println("Element: "+text);
                 if (text.contains(term)) {
                     snippet = text;
 //                    System.out.println(snippet);

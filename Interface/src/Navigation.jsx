@@ -1,7 +1,16 @@
 //import { data } from "./PagesData";
 import "./Navigation.css";
 
-const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed ,allPages,setAllPages}) => {
+const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed, allPages, setAllPages }) => {
+  
+  const testIndexbegin = (beg) =>
+  {
+    console.log(allPages.slice(beg, beg + 10))
+    console.log(beg);
+    
+
+  }
+
   return (
     <div className="nav">
       {indexBegin !== 0 ? (
@@ -9,6 +18,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed ,allPages,set
           className="active left btn"
           onClick={() => {
             setViewed(allPages.slice(indexBegin - 10, indexBegin));
+            testIndexbegin(indexBegin-10);
             setIndexBegin(indexBegin - 10);
           }}
         >
@@ -21,14 +31,16 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed ,allPages,set
         {" "}
         {allPages.length === 0 ? <b>-</b> : Math.trunc(indexBegin / 10) + 1}{" "}
       </p>
-      {indexBegin === allPages.length - 10 || allPages.length === 0 || allPages.length <=10 ? (
+      {Math.abs(indexBegin-allPages.length) <= 10 || allPages.length === 0 || allPages.length <=10 ? (
         <button className="locked right btn">{">>"}</button>
       ) : (
         <button
           className="active right btn"
           onClick={() => {
             setViewed(allPages.slice(indexBegin + 10, indexBegin + 20));
+            testIndexbegin(indexBegin+10);
             setIndexBegin(indexBegin + 10);
+
           }}
         >
           {">>"}

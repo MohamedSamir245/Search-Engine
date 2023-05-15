@@ -92,7 +92,7 @@ public class Main {
 
 
 
-            if(CrawlerCollection.find(d).first()==null)
+            if(CrawlerCollection.find(new org.bson.Document("URL",dd.baseUri())).first()==null)
                 CrawlerCollection.insertOne(d);
 
         }
@@ -237,7 +237,7 @@ class Crawler implements Runnable {
     //    =================================================================
 
     private void crawler() throws Exception {
-        int MAX_CRAWLED = 60; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+        int MAX_CRAWLED = 600; // KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
         String link;
         while (links.isEmpty())
         {
