@@ -1,7 +1,7 @@
 // TODO: save State
 //                      1. Add docs to DB --> Done
 //                      2. Add state!! to DB
-//                      3. Thread leave early!! --> Done?
+//                      3. Thread leave early!! --> Not Solved?
 
 // ----------------- Libraries -----------------------
 
