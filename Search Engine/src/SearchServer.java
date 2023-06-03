@@ -23,7 +23,7 @@ public class SearchServer {
 
 
         MongoCollection<Document> IndexerCollection = MongoDB.getCollection("IndexerDB");
-        Document indexerdoc = IndexerCollection.find().first();
+//        Document indexerdoc = IndexerCollection.find().first();
         MongoCollection<Document> phraseSearchingCollection = MongoDB.getCollection("phraseSearchingDB");
         FindIterable<Document> phraseSearchingdoc = phraseSearchingCollection.find();
 
@@ -71,19 +71,23 @@ public class SearchServer {
 //                ArrayList<String> urls =new ArrayList<>(Arrays.asList( getURLs(getQueryWords(Query.toLowerCase()),indexerdoc,phraseSearchingdoc)));
                 ArrayList<String> urls=new ArrayList<>(Arrays.asList((String[])res.get("Links"))) ;
                 ArrayList<String>titles=new ArrayList<>(Arrays.asList((String[]) res.get("Titles")));
+                ArrayList<String>importantWords= (ArrayList<String>) res.get("ImportantWords");
+
                 ArrayList<String>descriptions=new ArrayList<>();
-                for (String url : urls) {
+                for( int i=0;i<urls.size();i++)
+                {
                     try{
 //                        System.out.println("Before calling generateSnippit"+Query);
 
-                    String snippet = Query_Phrase_Processor.generateSnippet(url, Query);
+                        String snippet = Query_Phrase_Processor.generateSnippet(urls.get(i), importantWords.get(i),Query);
 
-                    descriptions.add(snippet);}
+                        descriptions.add(snippet);}
                     catch (Exception e)
                     {
                         descriptions.add("");
                     }
                 }
+
 
 //                urls.forEach(System.out::println);
 //                titles.forEach(System.out::println);
@@ -96,12 +100,13 @@ public class SearchServer {
                 r.append("URLs",urls);
                 r.append("Titles",titles);
                 r.append("Descriptions",descriptions);
+                r.append("ImportantWords",importantWords);
 //                r.append("")
 //
 //                System.out.println("Sizes from inside Search Server");
 //                System.out.println(urls.size());
 //                System.out.println(titles.size());
-//                System.out.println(descriptions.size());
+                System.out.println("Size "+descriptions.size());
 
                 resultDB.insertOne(r);
 

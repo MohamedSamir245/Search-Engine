@@ -1,34 +1,60 @@
 import "./Page.css";
 import { React } from "react";
 
-const Page = ({ pageName, pageLink, pageParagraph, query }) => {
+const Page = ({ pageName, pageLink, pageParagraph, importantWord, query }) => {
   const viewDescription = () => {
-    const terms = query.split(" ");
-    const para = pageParagraph
-    
-    for (let i = 0; i < terms.length; i++) {
-      if (para.includes(terms[i])) {
-        const parts = pageParagraph.split(terms[i]);
-        return (
-          <p className="paragraph">
-            {parts.map((part, index) => {
-              if (index === parts.length - 1) {
-                return <span key={index}>{part}</span>;
-              }
-              return (
-                // <React.Fragment key={index}>
-                <span key={index}>
-                  <span>{part}</span>
-                  <strong>{terms[i]}</strong>
-                </span>
+    const phrase = query.split('"').join("").toLowerCase();
+    const para = pageParagraph;
+    // console.log(importantWord)
+    // console.log(para);
 
-                // </React.Fragment>
-              );
-            })}
-          </p>
-        );
-      }
-    }
+    // if (para.includes(importantWord)) {
+      const parts = pageParagraph.split(importantWord);
+      return (
+        <p className="paragraph">
+          {parts.map((part, index) => {
+            if (index === parts.length - 1) {
+              return <span key={index}>{part}</span>;
+            }
+            return (
+              // <React.Fragment key={index}>
+              <span key={index}>
+                <span>{part}</span>
+                <strong>{importantWord}</strong>
+              </span>
+
+              // </React.Fragment>
+            );
+          })}
+        </p>
+      );
+    // }
+
+    const terms = query.split(" ");
+
+    // for (let i = 0; i < terms.length; i++) {
+    //   if (para.includes(terms[i])) {
+    //     const parts = pageParagraph.split(terms[i]);
+    //     return (
+    //       <p className="paragraph">
+    //         {parts.map((part, index) => {
+    //           if (index === parts.length - 1) {
+    //             return <span key={index}>{part}</span>;
+    //           }
+    //           return (
+    //             // <React.Fragment key={index}>
+    //             <span key={index}>
+    //               <span>{part}</span>
+    //               <strong>{terms[i]}</strong>
+    //             </span>
+
+    //             // </React.Fragment>
+    //           );
+    //         })}
+    //       </p>
+    //     );
+    //   }
+    // }
   };
   return (
     <>

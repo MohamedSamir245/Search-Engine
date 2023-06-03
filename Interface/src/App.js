@@ -10,12 +10,13 @@ function App() {
   const [querySearch, setQuerySearch] = useState("");
   const [viewed, setViewed] = useState([]);
   const [allPages, setallPages] = useState([]);
-  const viewPages = viewed.map(({ pageName, pageLink, pageParagraph }) => {
+  const viewPages = viewed.map(({ pageName, pageLink, pageParagraph,importantWord }) => {
     return (
       <Page
         pageName={pageName}
         pageLink={pageLink}
         pageParagraph={pageParagraph}
+        importantWord={importantWord}
         query={querySearch}
         key={pageName}
       />

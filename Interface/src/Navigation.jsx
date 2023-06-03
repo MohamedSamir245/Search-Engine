@@ -18,7 +18,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed, allPages, se
           className="active left btn"
           onClick={() => {
             setViewed(allPages.slice(indexBegin - 10, indexBegin));
-            testIndexbegin(indexBegin-10);
+            // testIndexbegin(indexBegin-10);
             setIndexBegin(indexBegin - 10);
           }}
         >
@@ -38,7 +38,7 @@ const Navigation = ({ indexBegin, setIndexBegin, viewed, setViewed, allPages, se
           className="active right btn"
           onClick={() => {
             setViewed(allPages.slice(indexBegin + 10, indexBegin + 20));
-            testIndexbegin(indexBegin+10);
+            // testIndexbegin(indexBegin+10);
             setIndexBegin(indexBegin + 10);
 
           }}

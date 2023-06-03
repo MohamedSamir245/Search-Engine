@@ -148,6 +148,8 @@ public class Ranker{
         ArrayOfPairsSorter.sort(final_ranks);
     }
 }
+
+
 //    public HashMap<String,Double> calculateInverseDocFrequency(DocumentProperties [] docProperties)
 //    {
 //        HashMap<String,Double> InverseDocFreqMap = new HashMap<>();

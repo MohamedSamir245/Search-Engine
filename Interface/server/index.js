@@ -3,6 +3,8 @@ const MongoClient = require("mongodb").MongoClient;
 const cors = require("cors");
 const { ObjectId } = require("mongodb");
 
+const { performance } = require("perf_hooks");
+
 const app = express();
 
 app.use(cors());
@@ -56,27 +58,11 @@ app.post("/search", (req, res) => {
     }
     console.log("query inserted");
   });
-  // // .then(() => {
-  // // setTimeout(() => {
-  // let doc = resultDB.find({ Query: query });
-  // doc.toArray().then((val) => {
-  //   if (val.length !== 0) {
-  //     res.send({
-  //       links: val.at(0).URLs,
-  //       titles: val.at(0).Titles,
-  //       descriptions: val.at(0).Descriptions,
-  //     });
-  //     resultDB.deleteMany(val.at(0));
-  //   } else {
-  //     console.log("Not Found");
 
-  //     res.send("Not Found");
-  //   }
-  // });
-
+  const startTime = Date.now();
   waitForData(db, function (doc) {});
 
-  function waitForData(db, callback) {
+  function waitForData(db) {
     // console.log("Inside waitForData");
 
     // Check if there is data in the collection
@@ -90,20 +76,20 @@ app.post("/search", (req, res) => {
         // If there is data, call the callback function
         if (doc) {
           console.log("Data found!");
-
-          // callback(doc);
         } else {
           console.log("No data found. Waiting...");
 
           // If there is no data, wait for a short time and check again
           setTimeout(function () {
-            waitForData(db, callback);
-          }, 1000);
+            waitForData(db);
+          }, 250);
         }
       })
       .catch((doc) => {
         // console.log("ggggggggg");
-        callback(doc);
+        const endTime = Date.now();
+        console.log((endTime - startTime) / 1000);
+
         console.log("Inside Callback");
         //  doc.then((val) => {
         if (doc !== null) {
@@ -111,6 +97,8 @@ app.post("/search", (req, res) => {
             links: doc.URLs,
             titles: doc.Titles,
             descriptions: doc.Descriptions,
+            time: (endTime - startTime) / 1000,
+            importantWords: doc.ImportantWords,
           });
           resultDB.deleteMany(doc);
         } else {

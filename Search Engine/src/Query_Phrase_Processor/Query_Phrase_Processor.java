@@ -86,17 +86,28 @@ public class Query_Phrase_Processor {
 
         ArrayList<String> links = new ArrayList<>();
         ArrayList<String> titles = new ArrayList<>();
+        ArrayList<String> importantWords = new ArrayList<>();
+
+
 
 
 
 
         for (int i = 0; i < words.length - 1; i++) {
 
+            String importantWord="";
+
+
+            Long frequency = 0L;
+
 //            Document search = new Document(words[i]);
 
             Document indexerdoc= IndexerCollection.find(new Document("Word",words[i])).first();
 
-
+            if(indexerdoc==null)
+            {
+                continue;
+            }
             ArrayList<Document> sub = (ArrayList<Document>) indexerdoc.get("Data");
             if (sub == null)
                 continue;
@@ -104,7 +115,7 @@ public class Query_Phrase_Processor {
 //            ArrayList<String> websites = new ArrayList<>();
 
 
-            System.out.println(sub.size());
+            System.out.println(words[i]+" " + sub.size());
 
 
             for (Document document : sub) {
@@ -112,9 +123,18 @@ public class Query_Phrase_Processor {
                 {
                     links.add((String) document.get("URL"));
                     titles.add((String) document.get("Title"));
+                    if(document.get("Freq")!=null)
+                        frequency=(Long) document.get("Freq");
+                    importantWords.add(words[i]);
 //                    System.out.println(titles.get(titles.size()-1));
 
 
+                }
+                if(document.get("Freq") !=null&&(Long) document.get("Freq")>frequency)
+                {
+
+                    frequency=(Long) document.get("Freq");
+                    importantWords.set(i, words[i]);
                 }
 
 //                websites.add((String) document.get("URL"));
@@ -142,9 +162,11 @@ public class Query_Phrase_Processor {
                     String url = (String) doc.get("PageLink");
                     String title = (String) doc.get("PageTitle");
 
-                    titles.add(title);
                     if (html.contains(words[words.length - 1])) {
                         links.add(url);
+                        titles.add(title);
+                        importantWords.add(words[words.length-1]);
+
                     }
                 }
             }
@@ -156,33 +178,55 @@ public class Query_Phrase_Processor {
 
         Document res = new Document("Links", links.toArray(String[]::new));
         res.append("Titles", titles.toArray(String[]::new));
+        res.append("ImportantWords",importantWords);
         return res;
 
     }
 
-    public static String generateSnippet(String url, String searchTerm) throws Exception {
+    public static String generateSnippet(String url, String searchTerm,String query) throws Exception {
 
 //        System.out.println("Search Term "+ searchTerm);
-       String[] terms = getQueryWords(searchTerm);
+       String[] terms = getQueryWords(query);
 
 //       for(String l:terms)
 //       {
 //           System.out.println("Term "+l);
+
+
 //       }
 
+        org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
+        String snippet = "";
+
+
+if(!Objects.equals(terms[terms.length - 1], ""))
+{
+    Elements elements = doc.getElementsContainingOwnText(terms[terms.length - 1]);
+    for (org.jsoup.nodes.Element element : elements) {
+        String text = element.text().toLowerCase();
+//                System.out.println("Element: "+text);
+        if (text.contains(terms[terms.length - 1].toLowerCase())) {
+            snippet = text;
+//                    System.out.println(snippet);
+            break;
+        }
+
+
+    }
+    if(!snippet.equals(""))
+        return snippet;
+}
 //        System.out.println("dkjfsahkdjshaf"+searchTerm);
 
 
 
-        org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
-        String snippet = "";
 
         for (String term : terms) {
             Elements elements = doc.getElementsContainingOwnText(term);
             for (org.jsoup.nodes.Element element : elements) {
                 String text = element.text().toLowerCase();
 //                System.out.println("Element: "+text);
-                if (text.contains(term)) {
+                if (text.contains(term.toLowerCase())) {
                     snippet = text;
 //                    System.out.println(snippet);
                     break;
