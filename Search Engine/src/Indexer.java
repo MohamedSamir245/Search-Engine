@@ -60,7 +60,7 @@ public class Indexer {
         private int NumberOfThreads;
         private static ArrayList<Document> boddiesList;
 
-        private static final MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+        private static final MongoClient mongoClient = new MongoClient(new MongoClientURI(process.env.MONGODB_URI));
 
         private static MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
         private static MongoCollection<Document> CrawlerCollection = MongoDB.getCollection("CrawlerCollection");
