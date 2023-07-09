@@ -14,7 +14,7 @@ import static Query_Phrase_Processor.Query_Phrase_Processor.getURLs;
 
 public class SearchServer {
     public static void main(String[] args) throws Exception {
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb+srv://Admin:admin@cluster0.srt79fu.mongodb.net/test"));
+        MongoClient mongoClient = new MongoClient(new MongoClientURI(process.env.MONGODB_URI));
 
         MongoDatabase MongoDB = mongoClient.getDatabase("MongoDB");
         MongoCollection<Document> searchDB = MongoDB.getCollection("searchDB");
